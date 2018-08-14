@@ -1,4 +1,4 @@
-# IVSUMM: Image and Video Summarization Library
+# IVSumm: Image and Video Summarization Library
 
 ## License
 IVSUMM is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more details.
