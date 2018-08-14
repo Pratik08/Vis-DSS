@@ -1,4 +1,30 @@
-Example commands to run the executables:
+# IVSUMM: Image and Video Summarization Library
+
+## License
+IVSUMM is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more details.
+
+## Features and Functionalities
+1) Video Summarization
+- Simple Video Summarization (using Color Histogram features)
+- Deep Video Summarization using Features from a Deep Model and Similarity based functions
+- Deep Video Summarization using Features from a Deep Model and Coverage Based Functions
+
+2) Image Collection Summarization
+- Simple Video Summarization (using Color Histogram features)
+- Deep Video Summarization using Features from a Deep Model and Similarity based functions
+- Deep Video Summarization using Features from a Deep Model and Coverage Based Functions
+
+3) Entity Based Summarization
+- Summarize all the Entities (Faces, Objects) in a Video
+
+## Summarization Models
+- Facility Location Functions (Representation Models)
+- Disparity Min and Disparity Sum (Diversity Models)
+- Set Cover and Probabilistic Set Cover (Coverage Models)
+- Feature Based Functions
+- Graph Cut and Saturated Coverage Functions
+
+## Example commands to run the executables:
 
 DisparityMin with Budgeted Summarization (SimpleVideoSummarizer: Using Color Histogram)
 ./SimpleVSExample -videoFile ../videos/friends.mp4 -videoSaveFile ../videos/friends_summary_DM30.avi -summaryModel 0 -segmentType 0 -summaryAlgo 0 -budget 30
