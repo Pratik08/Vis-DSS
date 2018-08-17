@@ -63,27 +63,6 @@ target_link_libraries(SimpleImageSummExample
     -lopencv_dnn
 )
 
-######################################### Caffe Classifier Example ########################################
-include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/
-/Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/vsumm/ /Users/rkiyer/Desktop/ivsumm/src/utils/
-/Users/rkiyer/Desktop/caffe/include /usr/local/Cellar/openblas/0.3.1/include /usr/local/Cellar/glog/0.3.5_3/include)
-link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/ /Users/rkiyer/Desktop/caffe/build/lib
-/usr/local/Cellar/openblas/0.3.1/lib /usr/local/Cellar/glog/0.3.5_3/lib)
-add_executable(ImageClassify examples/ImageClassify.cc src/utils/caffeClassifier.cc)
-set_source_files_properties(examples/ImageClassify.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
-set_source_files_properties(src/utils/caffeClassifier.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
-target_link_libraries(ImageClassify
-    summengine -lopencv_imgproc -lcaffe -lglog
-    -lopencv_core
-    -lopencv_highgui
-    -lopencv_videoio
-    -lopencv_imgcodecs
-    -lopencv_bgsegm
-    -lopencv_video
-    -lopencv_objdetect
-    -lopencv_dnn
-)
-
 ######################################### Deep Video Summarizer Example ########################################
 include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/
 /Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/vsumm/
