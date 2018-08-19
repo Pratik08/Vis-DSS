@@ -111,6 +111,52 @@ target_link_libraries(DeepImageSummExample
     -lopencv_dnn
 )
 
+######################################### Entity Face Video Summarizer Example ########################################
+include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/
+/Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/vsumm/
+/Users/rkiyer/Desktop/caffe/include /usr/local/Cellar/openblas/0.3.1/include /usr/local/Cellar/glog/0.3.5_3/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/ /Users/rkiyer/Desktop/caffe/build/lib
+/usr/local/Cellar/openblas/0.3.1/lib /usr/local/Cellar/glog/0.3.5_3/lib /usr/local/lib/X11/)
+add_executable(EntityFaceSummExample examples/EntityFaceSummExample.cc src/utils/caffeClassifier.cc src/utils/dnnClassifier.cc
+src/utils/dlibClassifier.cc src/vsumm/EntitySimVideoSummarizer.cc src/utils/ImageUtils.cc src/utils/dlib/all/source.cpp)
+set_source_files_properties(examples/EntityFaceSummExample.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/utils/caffeClassifier.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/vsumm/EntitySimVideoSummarizer.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+target_link_libraries(EntityFaceSummExample
+    summengine -lopencv_imgproc -lcaffe -lglog
+    -lopencv_core
+    -lopencv_highgui
+    -lopencv_videoio
+    -lopencv_imgcodecs
+    -lopencv_bgsegm
+    -lopencv_video
+    -lopencv_objdetect
+    -lopencv_dnn -lX11
+)
+
+######################################### Entity Object Video Summarizer Example ########################################
+include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/
+/Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/vsumm/
+/Users/rkiyer/Desktop/caffe/include /usr/local/Cellar/openblas/0.3.1/include /usr/local/Cellar/glog/0.3.5_3/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/ /Users/rkiyer/Desktop/caffe/build/lib
+/usr/local/Cellar/openblas/0.3.1/lib /usr/local/Cellar/glog/0.3.5_3/lib /usr/local/lib/X11/)
+add_executable(EntityObjectSummExample examples/EntityObjectSummExample.cc src/utils/caffeClassifier.cc src/utils/dnnClassifier.cc
+src/utils/dlibClassifier.cc src/vsumm/EntitySimVideoSummarizer.cc src/utils/ImageUtils.cc src/utils/dlib/all/source.cpp)
+set_source_files_properties(examples/EntityObjectSummExample.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/utils/caffeClassifier.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/vsumm/EntitySimVideoSummarizer.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+target_link_libraries(EntityObjectSummExample
+    summengine -lopencv_imgproc -lcaffe -lglog
+    -lopencv_core
+    -lopencv_highgui
+    -lopencv_videoio
+    -lopencv_imgcodecs
+    -lopencv_bgsegm
+    -lopencv_video
+    -lopencv_objdetect
+    -lopencv_dnn -lX11
+)
+
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "IVSUMM")
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
 SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/COPYING")

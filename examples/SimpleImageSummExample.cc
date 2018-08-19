@@ -26,8 +26,8 @@ char* help;
 
 Arg Arg::Args[]={
     Arg("directory", Arg::Req, directory, "Input Image Collection Directory",Arg::SINGLE),
-    Arg("videoSaveFile", Arg::Req, videoSaveFile, "Output Summary Video File",Arg::SINGLE),
-    Arg("imageSaveFile", Arg::Req, videoSaveFile, "Output Summary Image File",Arg::SINGLE),
+    Arg("videoSaveFile", Arg::Opt, videoSaveFile, "Output Summary Video File",Arg::SINGLE),
+    Arg("imageSaveFile", Arg::Req, imageSaveFile, "Output Summary Image File",Arg::SINGLE),
     Arg("summarygrid", Arg::Opt, summary_grid, "Size of a image in the full grid",Arg::SINGLE),
     Arg("summaryModel", Arg::Req, summaryFunction, "Summarization Model -- 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage",Arg::SINGLE),
     Arg("summaryAlgo", Arg::Req, summaryAlgo, "Summarization Algorithm: 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization",Arg::SINGLE),
@@ -49,12 +49,14 @@ int main(int argc, char** argv){
   std::string imgName;
   struct dirent *ent;
   std::vector<cv::Mat> ImageCollection = std::vector<cv::Mat>();
+  dir = opendir (directory);
   if (dir != NULL) {
       while ((ent = readdir (dir)) != NULL) {
           imgName = dirName + "/" + ent->d_name;
-          std::cout<<imgName<<" ";
+          std::cout<<imgName<<"\n";
           cv::Mat img = cv::imread(imgName);
-          ImageCollection.push_back(img);
+          if(!img.empty())
+              ImageCollection.push_back(img);
         }
   }
   SimpleImageSummarizer IS(ImageCollection, summaryFunction);

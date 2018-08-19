@@ -188,8 +188,8 @@ void DeepCoverImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave,
     {
         summaryimages.push_back(ImageCollection[*it]);
     }
-    cv::Mat collagesummary = cv::Mat(image_size*summary_y,image_size*summary_x,CV_8UC3);
-    tile(summaryimages, collagesummary, summary_x, summary_y);
+    cv::Mat collagesummary = cv::Mat::zeros(cv::Size(image_size*summary_x,image_size*summary_y),CV_8UC3);
+    tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage",collagesummary);
     if (imageFileSave != "")
         cv::imwrite(imageFileSave, collagesummary);

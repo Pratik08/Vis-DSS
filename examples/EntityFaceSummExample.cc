@@ -1,5 +1,4 @@
-#include "DeepSimVideoSummarizer.h"
-#include "DeepCoverVideoSummarizer.h"
+#include "EntitySimVideoSummarizer.h"
 #include <iostream>
 #include "opencv2/opencv.hpp"
 #include <opencv2/highgui/highgui.hpp>
@@ -10,7 +9,7 @@ using namespace std;
 using namespace cv;
 
 char* videoFile;
-char* videoSaveFile;
+char* imageSaveFile;
 // Video File to analyze
 int summaryFunctionSim = 0;
 // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
@@ -26,30 +25,42 @@ int snippetLength = 2; // in case of fixed length snippets, the length of the sn
 int budget = 120; // summary budget in seconds
 double thresh = 0.001; // threshold for the stream Algorithm
 double coverfrac = 0.9; // coverage fraction for submodular set cover
-char* network_file;
-char* trained_file;
-char* mean_file;
-char* label_file;
-char* featureLayer;
+char* network_file = "";
+char* trained_file = "";
+char* mean_file = "";
+char* label_file = "";
+char* network_file_face = "";
+char* trained_file_face = "";
+char* mean_file_face = "";
+char* label_file_face = "";
+double threshold_face = 0.3;
+char* landmarking_model_file;
+char* pretrained_resnet_file;
+char* featureLayer = "";
 char* help;
 bool debug = true;
+int featMode;
+int summary_grid = 60;
 
 Arg Arg::Args[]={
     Arg("videoFile", Arg::Req, videoFile, "Input Video File",Arg::SINGLE),
-    Arg("imageSaveFile", Arg::Req, videoSaveFile, "Input Video File",Arg::SINGLE),
-    Arg("summaryModelSim", Arg::Opt, summaryFunctionSim, "Summarization Model -- 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage",Arg::SINGLE),
-    Arg("summaryModelCover", Arg::Opt, summaryFunctionCover, "Summarization Model -- 0: FeatureBasedFunction, 1: Set Cover, 2: Probabilistic Set Cover",Arg::SINGLE),
-    Arg("simcover", Arg::Req, simcover, "0: Similarity Based Functions, 1: Coverage Based Functions",Arg::SINGLE),
+    Arg("imageSaveFile", Arg::Req, imageSaveFile, "Input Video File",Arg::SINGLE),
+    Arg("summaryModel", Arg::Req, summaryFunctionSim, "Summarization Model -- 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage",Arg::SINGLE),
     Arg("summaryAlgo", Arg::Req, summaryAlgo, "Summarization Algorithm: 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization",Arg::SINGLE),
-    Arg("featureLayer", Arg::Req, featureLayer, "Layer Name for Feature Extraction",Arg::SINGLE),
-    Arg("network_file", Arg::Req, network_file, "Input Network File",Arg::SINGLE),
-    Arg("trained_file", Arg::Req, trained_file, "Trained Model File",Arg::SINGLE),
-    Arg("mean_file", Arg::Req, mean_file, "Mean File",Arg::SINGLE),
-    Arg("label_file", Arg::Req, label_file, "Label File",Arg::SINGLE),
-    Arg("network_file_face", Arg::Req, network_file, "Input Network File for Face detection",Arg::SINGLE),
-    Arg("trained_file_face", Arg::Req, trained_file, "Trained Model File for Face detection",Arg::SINGLE),
-    Arg("mean_file_face", Arg::Req, mean_file, "Mean File for Face detection",Arg::SINGLE),
-    Arg("label_file_face", Arg::Req, label_file, "Label File for Face detection",Arg::SINGLE),
+    Arg("summarygrid", Arg::Opt, summary_grid, "Size of a image in the full grid",Arg::SINGLE),
+    Arg("featureLayer", Arg::Opt, featureLayer, "Layer Name for Feature Extraction",Arg::SINGLE),
+    Arg("network_file", Arg::Opt, network_file, "Input Network File",Arg::SINGLE),
+    Arg("trained_file", Arg::Opt, trained_file, "Trained Model File",Arg::SINGLE),
+    Arg("mean_file", Arg::Opt, mean_file, "Mean File",Arg::SINGLE),
+    Arg("label_file", Arg::Opt, label_file, "Label File",Arg::SINGLE),
+    Arg("landmarking_model_file", Arg::Opt, landmarking_model_file, "Mean File",Arg::SINGLE),
+    Arg("pretrained_resnet_file", Arg::Opt, pretrained_resnet_file, "Label File",Arg::SINGLE),
+    Arg("featMode", Arg::Req, featMode, "Feature Mode: 0 (Caffe), 1(Dlib)"),
+    Arg("network_file_face", Arg::Req, network_file_face, "Input Network File for Face detection",Arg::SINGLE),
+    Arg("trained_file_face", Arg::Req, trained_file_face, "Trained Model File for Face detection",Arg::SINGLE),
+    Arg("mean_file_face", Arg::Opt, mean_file_face, "Mean File for Face detection",Arg::SINGLE),
+    Arg("label_file_face", Arg::Req, label_file_face, "Label File for Face detection",Arg::SINGLE),
+    Arg("threshold_face", Arg::Opt, threshold_face, "Label File for Face detection",Arg::SINGLE),
     Arg("budget", Arg::Opt, budget, "Budget for summarization (if summarization algo is 0)", Arg::SINGLE),
     Arg("thredshold", Arg::Opt, thresh, "Threshold for summarization (if summarization algo is 1)", Arg::SINGLE),
     Arg("coverage fraction", Arg::Opt, coverfrac, "coverage fraction for summarization (if summarization algo is 2)", Arg::SINGLE),
@@ -63,37 +74,48 @@ int main(int argc, char** argv){
   if(!parse_was_ok){
       Arg::usage(); exit(-1);
   }
-  DNNClassifier dc("FACE", "RESNET", network_file_face, trained_file_face, mean_file_face, label_file_face);
-  std::vector<cv::Mat> faceCollection = std::vector<cv::Mat>();
-  cv::VideoCapture capture(videoFile);
-  frameRate = (int) capture.get(CV_CAP_PROP_FPS);
-  cv::Mat frame;
-  int count = 0;
-    if( !capture.isOpened() )
-        throw "Error when reading video file\n";
-    while(1)
+  if (featMode == 0)
+  {
+      DNNClassifier dnnc("FACE", "RESNET", network_file_face, trained_file_face, mean_file_face, label_file_face, threshold_face);
+      CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
+      EntitySimVideoSummarizer ES(videoFile, cc, dnnc, featureLayer, summaryFunctionSim);
+      ES.extractFeatures();
+      ES.computeKernel();
+      if (summaryAlgo == 0)
+      {
+          ES.summarizeBudget(budget);
+      }
+      else if (summaryAlgo == 1)
+      {
+          ES.summarizeStream(thresh);
+      }
+      else if (summaryAlgo == 2)
+      {
+          ES.summarizeCover(coverfrac);
+      }
+      ES.displayAndSaveSummaryMontage(imageSaveFile, summary_grid);
+  }
+  else if (featMode == 1)
+  {
+    DNNClassifier dnnc("FACE", "RESNET", network_file_face, trained_file_face, mean_file_face, label_file_face);
+    DlibClassifier dlibc(landmarking_model_file, pretrained_resnet_file);
+    EntitySimVideoSummarizer ES(videoFile, dlibc, dnnc, featureLayer, summaryFunctionSim);
+    ES.extractFeatures();
+    ES.computeKernel();
+    if (summaryAlgo == 0)
     {
-        capture >> frame;
-        if(frame.empty())
-            break;
-        if (count % frameRate == 0)
-        {
-            std::vector<std::pair<std::string, cv::Rect> > results = std::vector<std::pair<std::string, cv::Rect> >();
-            dc.Classify(frame, results);
-            for (int i = 0; i < results.size(); i++)
-            {
-                cv::Mat faceIm = frame(results[i].second);
-                faceCollection.push_back(faceIm.clone());
-                if (debug)
-                {
-                  cv::rectangle(frame,results[i].second, cv::Scalar(255, 255, 0), 2);
-                  cv::imshow("Debug", frame);
-                  waitKey(300); // key press to close window
-                }
-            }
-        }
-        count++;
+        ES.summarizeBudget(budget);
     }
-    // releases and window destroy are automatic in C++ interface
-    return 0;
+    else if (summaryAlgo == 1)
+    {
+        ES.summarizeStream(thresh);
+    }
+    else if (summaryAlgo == 2)
+    {
+        ES.summarizeCover(coverfrac);
+    }
+    std::cout << "Done with the summarization\n" << std::flush;
+    ES.displayAndSaveSummaryMontage(imageSaveFile, summary_grid);
+
+  }
 }

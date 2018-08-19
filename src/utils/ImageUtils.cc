@@ -36,7 +36,7 @@ cv::Mat GetSquareImage( const cv::Mat& img, int target_width)
     return square;
 }
 
-void tile(std::vector<cv::Mat> &src, cv::Mat &dst, int grid_x, int grid_y) {
+void tile(std::vector<cv::Mat> &src, cv::Mat &dst, int grid_x, int grid_y, int budget) {
     // patch size
     int width  = dst.cols/grid_x;
     int height = dst.rows/grid_y;
@@ -44,9 +44,13 @@ void tile(std::vector<cv::Mat> &src, cv::Mat &dst, int grid_x, int grid_y) {
     int k = 0;
     for(int i = 0; i < grid_y; i++) {
         for(int j = 0; j < grid_x; j++) {
-            cv::Mat s = src[k++];
-            cv::resize(s,s,cv::Size(width,height));
-            s.copyTo(dst(cv::Rect(j*width,i*height,width,height)));
+            if (k < budget)
+            {
+                cv::Mat s = src[k];
+                cv::resize(s,s,cv::Size(width,height));
+                s.copyTo(dst(cv::Rect(j*width,i*height,width,height)));
+            }
+            k++;
         }
     }
 }

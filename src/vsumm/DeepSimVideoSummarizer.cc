@@ -390,7 +390,7 @@ void DeepSimVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, i
     }
     capture.release();
     cv::Mat collagesummary = cv::Mat(image_size*summary_y,image_size*summary_x,CV_8UC3);
-    tile(summaryimages, collagesummary, summary_x, summary_y);
+    tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage",collagesummary);
     if (imageFileSave != "")
         cv::imwrite(imageFileSave, collagesummary);
