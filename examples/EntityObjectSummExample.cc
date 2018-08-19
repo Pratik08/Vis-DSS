@@ -22,10 +22,10 @@ int segmentType;
 // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
 int summaryAlgo;
 // 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization
-int snippetLength = 2; // in case of fixed length snippets, the length of the snippetHist
-int budget = 120; // summary budget in seconds
-double thresh = 0.001; // threshold for the stream Algorithm
-double coverfrac = 0.9; // coverage fraction for submodular set cover
+int snippetLength = 2;  // in case of fixed length snippets, the length of the snippetHist
+int budget = 120;  // summary budget in seconds
+double thresh = 0.001;  // threshold for the stream Algorithm
+double coverfrac = 0.9;  // coverage fraction for submodular set cover
 char* network_file;
 char* trained_file;
 char* mean_file;
@@ -54,10 +54,10 @@ Arg Arg::Args[]={
     Arg()
 };
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
 
   bool parse_was_ok = Arg::parse(argc,(char**)argv);
-  if(!parse_was_ok){
+  if (!parse_was_ok) {
       Arg::usage(); exit(-1);
   }
   CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
@@ -99,7 +99,7 @@ int main(int argc, char** argv){
       }
       VS.playAndSaveSummaryVideo(videoSaveFile);
     }
-  // When everything done, release the video capture object
-  // Closes all the frames
+   // When everything done, release the video capture object
+   // Closes all the frames
   return 0;
 }

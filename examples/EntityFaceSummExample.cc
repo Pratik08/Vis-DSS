@@ -22,10 +22,10 @@ int segmentType;
 // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
 int summaryAlgo;
 // 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization
-int snippetLength = 2; // in case of fixed length snippets, the length of the snippetHist
-int budget = 120; // summary budget in seconds
-double thresh = 0.001; // threshold for the stream Algorithm
-double coverfrac = 0.9; // coverage fraction for submodular set cover
+int snippetLength = 2;  // in case of fixed length snippets, the length of the snippetHist
+int budget = 120;  // summary budget in seconds
+double thresh = 0.001;  // threshold for the stream Algorithm
+double coverfrac = 0.9;  // coverage fraction for submodular set cover
 char* network_file;
 char* trained_file;
 char* mean_file;
@@ -57,10 +57,10 @@ Arg Arg::Args[]={
     Arg()
 };
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
 
   bool parse_was_ok = Arg::parse(argc,(char**)argv);
-  if(!parse_was_ok){
+  if (!parse_was_ok) {
       Arg::usage(); exit(-1);
   }
   DNNClassifier dc("FACE", "RESNET", network_file_face, trained_file_face, mean_file_face, label_file_face);
@@ -69,12 +69,12 @@ int main(int argc, char** argv){
   frameRate = (int) capture.get(CV_CAP_PROP_FPS);
   cv::Mat frame;
   int count = 0;
-    if( !capture.isOpened() )
+    if (!capture.isOpened())
         throw "Error when reading video file\n";
     while(1)
     {
         capture >> frame;
-        if(frame.empty())
+        if (frame.empty())
             break;
         if (count % frameRate == 0)
         {
@@ -88,12 +88,12 @@ int main(int argc, char** argv){
                 {
                   cv::rectangle(frame,results[i].second, cv::Scalar(255, 255, 0), 2);
                   cv::imshow("Debug", frame);
-                  waitKey(300); // key press to close window
+                  waitKey(300);  // key press to close window
                 }
             }
         }
         count++;
     }
-    // releases and window destroy are automatic in C++ interface
+     // releases and window destroy are automatic in C++ interface
     return 0;
 }

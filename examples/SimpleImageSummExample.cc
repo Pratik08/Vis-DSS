@@ -18,9 +18,9 @@ int summaryFunction;
 // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
 int summaryAlgo;
 // 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization
-int budget = 20; // summary budget in seconds
-double thresh = 0.001; // threshold for the stream Algorithm
-double coverfrac = 0.9; // coverage fraction for submodular set cover
+int budget = 20;  // summary budget in seconds
+double thresh = 0.001;  // threshold for the stream Algorithm
+double coverfrac = 0.9;  // coverage fraction for submodular set cover
 int summary_grid = 60;
 char* help;
 
@@ -38,10 +38,10 @@ Arg Arg::Args[]={
     Arg()
 };
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
 
   bool parse_was_ok = Arg::parse(argc,(char**)argv);
-  if(!parse_was_ok){
+  if (!parse_was_ok) {
       Arg::usage(); exit(-1);
   }
   DIR *dir;
