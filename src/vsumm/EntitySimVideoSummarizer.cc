@@ -130,6 +130,7 @@ void EntitySimVideoSummarizer::extractFeatures()
           feat = dlibc.Predict(frame);
       entityFeatures.push_back(feat);
       std::cout << "Processed Entity " << i << "\n";
+      costList.push_back(1);
     }
 
 }
@@ -164,7 +165,9 @@ void EntitySimVideoSummarizer::summarizeBudget(int budget){
       DisparityMin dM(n, kernel);
       int inititem = 1; //rand()%n;
       optSet.insert(inititem);
+      std::cout << "About to start naivegreedy max\n" << std::flush;
       naiveGreedyMaxKnapsack(dM, costList, budget, optSet, 1, false, true);
+      std::cout << "Finished naivegreedy max\n" << std::flush;
       summarySet = std::set<int>();
       for (Set::iterator it = optSet.begin(); it!=optSet.end(); it++)
       {
