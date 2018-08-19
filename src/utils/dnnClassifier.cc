@@ -11,7 +11,7 @@ DNNClassifier::DNNClassifier(const std::string& analyticsType, const std::string
     this->dnnThreshold = threshold;
     cv::String modelPrototxt = network_file;
     cv::String modelCaffemodel = trained_file;
-    // Initialize network
+     // Initialize network
     this->dnnNet = cv::dnn::readNetFromCaffe(modelPrototxt, modelCaffemodel);
     if (this->dnnNet.empty()) {
         std::cerr << "Can't load network by using the following files: " << std::endl;
@@ -38,7 +38,7 @@ DNNClassifier::DNNClassifier(const std::string& analyticsType, const std::string
     this->dnnThreshold = threshold;
     cv::String modelConfiguration = config_file;
     cv::String modelBinary = weights_file;
-    // Initialize network
+     // Initialize network
     this->dnnNet = cv::dnn::readNetFromDarknet(modelConfiguration, modelBinary);
     if (this->dnnNet.empty()) {
         std::cerr << "Can't load network by using the following files: " << std::endl;
@@ -71,9 +71,9 @@ void DNNClassifier::Classify(const cv::Mat &rawFrame, std::vector<std::pair<std:
                     int yLeftBottom = static_cast<int>(detectionMat.at<float>(i, 4) * rawFrame.rows);
                     int xRightTop = static_cast<int>(detectionMat.at<float>(i, 5) * rawFrame.cols);
                     int yRightTop = static_cast<int>(detectionMat.at<float>(i, 6) * rawFrame.rows);
-                    cv::Rect bb((int)xLeftBottom, (int)yLeftBottom,
-                                (int)(xRightTop - xLeftBottom),
-                                (int)(yRightTop - yLeftBottom));
+                    cv::Rect bb(static_cast<int>(xLeftBottom), static_cast<int>(yLeftBottom),
+                                static_cast<int>((xRightTop - xLeftBottom)),
+                                static_cast<int>((yRightTop - yLeftBottom)));
                     result.first = cv::String(this->labels[objectClass]);
                     result.second = bb;
                     results.push_back(result);
@@ -83,12 +83,12 @@ void DNNClassifier::Classify(const cv::Mat &rawFrame, std::vector<std::pair<std:
             std::ostringstream ss;
             cv::Mat annotatedFrame;
             for (int i = 0; i < detectionMat.rows; i++) {
-                // std::cout << "Number of rows in the detectionMat is : " << detectionMat.rows << std::endl;
+                 // std::cout << "Number of rows in the detectionMat is : " << detectionMat.rows << std::endl;
                 const int probability_index = 5;
                 const int probability_size = detectionMat.cols - probability_index;
                 float *prob_array_ptr = &detectionMat.at<float>(i, probability_index);
                 size_t objectClass = (size_t)(std::max_element(prob_array_ptr, prob_array_ptr + probability_size) - prob_array_ptr);
-                float confidence = detectionMat.at<float>(i, (int)objectClass + probability_index);
+                float confidence = detectionMat.at<float>(i, static_cast<int>(objectClass + probability_index));
                 if (confidence > this->dnnThreshold) {
                     std::pair<std::string, cv::Rect> result;
                     float x = detectionMat.at<float>(i, 0);
@@ -99,9 +99,9 @@ void DNNClassifier::Classify(const cv::Mat &rawFrame, std::vector<std::pair<std:
                     int yLeftBottom = static_cast<int>((y - height / 2) * rawFrame.rows);
                     int xRightTop = static_cast<int>((x + width / 2) * rawFrame.cols);
                     int yRightTop = static_cast<int>((y + height / 2) * rawFrame.rows);
-                    cv::Rect object((int)xLeftBottom, (int)yLeftBottom,
-                                    (int)(xRightTop - xLeftBottom),
-                                    (int)(yRightTop - yLeftBottom));
+                    cv::Rect object(static_cast<int>(xLeftBottom), static_cast<int>(yLeftBottom),
+                                    static_cast<int>((xRightTop - xLeftBottom)),
+                                    static_cast<int>((yRightTop - yLeftBottom)));
                     result.first = cv::String(this->labels[objectClass]);
                     result.second = object;
                     results.push_back(result);
@@ -119,10 +119,10 @@ void DNNClassifier::Classify(const cv::Mat &rawFrame, std::vector<std::pair<std:
                     int yLeftBottom = static_cast<int>(detectionMat.at<float>(i, 4) * rawFrame.rows);
                     int xRightTop = static_cast<int>(detectionMat.at<float>(i, 5) * rawFrame.cols);
                     int yRightTop = static_cast<int>(detectionMat.at<float>(i, 6) * rawFrame.rows);
-                    cv::Rect bb((int)xLeftBottom, (int)yLeftBottom,
-                                (int)(xRightTop - xLeftBottom),
-                                (int)(yRightTop - yLeftBottom));
-                    result.first = cv::String("face");  // cv::String(this->labels[objectClass]);
+                    cv::Rect bb(static_cast<int>(xLeftBottom), static_cast<int>(yLeftBottom),
+                                static_cast<int>((xRightTop - xLeftBottom)),
+                                static_cast<int>((yRightTop - yLeftBottom)));
+                    result.first = cv::String("face");   // cv::String(this->labels[objectClass]);
                     result.second = bb;
                     results.push_back(result);
                 }
@@ -133,28 +133,28 @@ void DNNClassifier::Classify(const cv::Mat &rawFrame, std::vector<std::pair<std:
 
 
 cv::Mat DNNClassifier::Predict(const cv::Mat &rawFrame) {
-    // Preprocess frame
+     // Preprocess frame
     cv::Mat inputBlob = this->Preprocess(rawFrame);
 
     if (this->analyticsType == "OBJECT") {
         if (this->analyticsAlgo == "MOBILENET") {
-            // Set input blob
-            this->dnnNet.setInput(inputBlob, "data");  // set the network input
-            cv::Mat detection = this->dnnNet.forward("detection_out");  // compute output
+             // Set input blob
+            this->dnnNet.setInput(inputBlob, "data");   // set the network input
+            cv::Mat detection = this->dnnNet.forward("detection_out");   // compute output
             cv::Mat detectionMat(detection.size[2], detection.size[3], CV_32F, detection.ptr<float>());
             return detectionMat;
         } else if (this->analyticsAlgo == "DARKNET_CPU") {
-            // Set input blob
-            this->dnnNet.setInput(inputBlob, "data");  // set the network input
-            // Make forward pass
-            cv::Mat detectionMat = this->dnnNet.forward("detection_out");  // compute output
+             // Set input blob
+            this->dnnNet.setInput(inputBlob, "data");   // set the network input
+             // Make forward pass
+            cv::Mat detectionMat = this->dnnNet.forward("detection_out");   // compute output
             return detectionMat;
         }
     } else if (this->analyticsType == "FACE") {
         if (this->analyticsAlgo == "RESNET") {
-            // Set input blob
-            this->dnnNet.setInput(inputBlob);  // set the network input
-            cv::Mat detection = this->dnnNet.forward();  // compute output
+             // Set input blob
+            this->dnnNet.setInput(inputBlob);   // set the network input
+            cv::Mat detection = this->dnnNet.forward();   // compute output
             cv::Mat detectionMat(detection.size[2], detection.size[3], CV_32F, detection.ptr<float>());
             return detectionMat;
         }
@@ -167,7 +167,7 @@ cv::Mat DNNClassifier::Preprocess(const cv::Mat &rawFrame) {
         if (this->analyticsAlgo == "MOBILENET") {
             const size_t inWidth = 300;
             const size_t inHeight = 300;
-            const float WHRatio = inWidth / (float)inHeight;
+            const float WHRatio = inWidth / static_cast<float>(inHeight);
             const float inScaleFactor = 0.007843f;
             const float meanVal = 127.5;
 
@@ -175,32 +175,32 @@ cv::Mat DNNClassifier::Preprocess(const cv::Mat &rawFrame) {
                 cvtColor(rawFrame, rawFrame, cv::COLOR_BGRA2BGR);
             }
 
-            // Prepare blob
-            cv::Mat inputBlob = cv::dnn::blobFromImage(rawFrame, inScaleFactor, cv::Size(inWidth, inHeight), meanVal, false);  // Convert Mat to batch of images
+             // Prepare blob
+            cv::Mat inputBlob = cv::dnn::blobFromImage(rawFrame, inScaleFactor, cv::Size(inWidth, inHeight), meanVal, false);   // Convert Mat to batch of images
             return inputBlob;
         } else if (this->analyticsAlgo == "DARKNET_CPU") {
             if (rawFrame.channels() == 4) {
                 cvtColor(rawFrame, rawFrame, cv::COLOR_BGRA2BGR);
             }
 
-            cv::Mat inputBlob = cv::dnn::blobFromImage(rawFrame, 1 / 255.F, cv::Size(416, 416), cv::Scalar(), true, false);  // Convert Mat to batch of images
+            cv::Mat inputBlob = cv::dnn::blobFromImage(rawFrame, 1 / 255.F, cv::Size(416, 416), cv::Scalar(), true, false);   // Convert Mat to batch of images
             return inputBlob;
         }
     } else if (this->analyticsType == "FACE") {
         if (this->analyticsAlgo == "RESNET") {
-            // const size_t inWidth = 300;
-            // const size_t inHeight = 300;
+             // const size_t inWidth = 300;
+             // const size_t inHeight = 300;
             const float inScaleFactor = 1.0f;
-            //
-            // cv::Mat resizedFrame;
-            // cv::resize(rawFrame, resizedFrame, cv::Size(300, 300));
-            //
+             //
+             // cv::Mat resizedFrame;
+             // cv::resize(rawFrame, resizedFrame, cv::Size(300, 300));
+             //
             if (rawFrame.channels() == 4) {
                 cvtColor(rawFrame, rawFrame, cv::COLOR_BGRA2BGR);
             }
-            //
-            //// Prepare blob
-            cv::Mat inputBlob = cv::dnn::blobFromImage(rawFrame, inScaleFactor, cv::Size(rawFrame.cols, rawFrame.rows), cv::Scalar(104.0, 177.0, 123.0));  // Convert Mat to batch of images
+             //
+             //// Prepare blob
+            cv::Mat inputBlob = cv::dnn::blobFromImage(rawFrame, inScaleFactor, cv::Size(rawFrame.cols, rawFrame.rows), cv::Scalar(104.0, 177.0, 123.0));   // Convert Mat to batch of images
             return inputBlob;
         }
     }

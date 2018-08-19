@@ -4,10 +4,12 @@
  *  A total order is a permutation of [n]
  *  Author: Hui Lin (hlin@ee.washington.edu)
  */
+#ifndef SRC_UTILS_TOTALORDER_H_
+#define SRC_UTILS_TOTALORDER_H_
+
 #include <algorithm>
 #include <vector>
-#ifndef TOTALORDER_H_
-#define TOTALORDER_H_
+#include <utility>
 
 template<class ValueType>
 class totalOrder {
@@ -32,9 +34,9 @@ class totalOrder {
             _order.push_back(i);
     }
 
-    /////////////////////////////////////////////////////////////////////////
-    // generate a total order such that for all i \prec j, w[i] <= w[j]    //
-    /////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+// generate a total order such that for all i \prec j, w[i] <= w[j]     //
+/////////////////////////////////////////////////////////////////////////
     totalOrder(std::vector<ValueType> w, bool Inc) {
         if (Inc)
             resetOrderInc(w);
@@ -59,9 +61,9 @@ class totalOrder {
             _order.push_back(wp[i].second);
     }
 
-    /////////////////////////////////////////////////////////////////////////
-    // generate a total order such that for all i \prec j, w[i] >= w[j]    //
-    /////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+// generate a total order such that for all i \prec j, w[i] >= w[j]     //
+/////////////////////////////////////////////////////////////////////////
 
     void resetOrderDec(std::vector<ValueType> w) {
         std::vector< std::pair<ValueType, int> > wp;
@@ -91,9 +93,9 @@ class totalOrder {
         _order.push_back(i);
     }
 
-    //////////////////////////////////////////////////////////////////////////
-    // implementation of access functions.                                  //
-    //////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// implementation of access functions.                                   //
+//////////////////////////////////////////////////////////////////////////
     int order(int i) {
         return _order[i];
     }
@@ -118,4 +120,4 @@ class totalOrder {
     std::vector<int> _order;
 };
 
-#endif  /* TOTALORDER_H_ */
+#endif   // SRC_UTILS_TOTALORDER_H_

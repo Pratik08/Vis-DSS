@@ -1,15 +1,17 @@
-#ifndef DNN_CLASSIFIER_H
-#define DNN_CLASSIFIER_H
+#ifndef SRC_UTILS_DNNCLASSIFIER_H_
+#define SRC_UTILS_DNNCLASSIFIER_H_
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/dnn.hpp>
+#include <opencv2/dnn/shape_utils.hpp>
 
 #include <iostream>
 #include <string>
 #include <vector>
 #include <fstream>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include "opencv2/dnn.hpp"
-#include "opencv2/dnn/shape_utils.hpp"
+#include <utility>
 
 class DNNClassifier {
  public:
@@ -29,4 +31,4 @@ class DNNClassifier {
     std::string analyticsAlgo;
 };
 
-#endif  // DNN_CLASSIFIER_H
+#endif   // SRC_UTILS_DNNCLASSIFIER_H_
