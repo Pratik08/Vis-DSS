@@ -29,35 +29,35 @@
 #include "SparseFeature.h"
 
 class DeepCoverVideoSummarizer {
-    // protected:
+     // protected:
  protected:
-   char* videoFile;
-   int frameRate;
-   int videoLength; // Length of the video in seconds
-   int summaryFunction;
-   // 0: Feature Based sqrt, 1: Set Cover, 4: Probabilistic Cover
-   int FeatureBasedFnType;
-   int segmentType;
-   // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
-   int snippetLength; // in case of fixed length snippets, the length of the snippetHist
-   std::vector<int> segmentStartTimes; // start times of the individual segments (each segment is an element in the ground set)
-   int n; // ground truth size
-   std::set<int> summarySet;
-   std::vector<double> costList;
-   std::vector<struct SparseFeature> classifierFeatures;
-   std::vector<std::vector<float> > pVec;
-   std::vector<Set> coverSet;  // The sets U_i, i \in V
-   CaffeClassifier cc;
-   std::string featureLayer;
-   int nFeatures;
-   int nConcepts;
-   double SmallShotPenalty = 10;
-   bool debugMode;
+    char* videoFile;
+    int frameRate;
+    int videoLength;  // Length of the video in seconds
+    int summaryFunction;
+     // 0: Feature Based sqrt, 1: Set Cover, 4: Probabilistic Cover
+    int FeatureBasedFnType;
+    int segmentType;
+     // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
+    int snippetLength;  // in case of fixed length snippets, the length of the snippetHist
+    std::vector<int> segmentStartTimes;  // start times of the individual segments (each segment is an element in the ground set)
+    int n;  // ground truth size
+    std::set<int> summarySet;
+    std::vector<double> costList;
+    std::vector<struct SparseFeature> classifierFeatures;
+    std::vector<std::vector<float> > pVec;
+    std::vector<Set> coverSet;  // The sets U_i, i \in V
+    CaffeClassifier cc;
+    std::string featureLayer;
+    int nFeatures;
+    int nConcepts;
+    double SmallShotPenalty = 10;
+    bool debugMode;
 
  public:
-    // Constructors
+     // Constructors
     DeepCoverVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer,
-      int summaryFunction = 0, int FeatureBasedFnType = 0, int segmentType = 0, int snippetLength = 2, bool debugMode = true);
+                             int summaryFunction = 0, int FeatureBasedFnType = 0, int segmentType = 0, int snippetLength = 2, bool debugMode = true);
     void extractFeatures();
     void summarizeBudget(int budget);
     void summarizeCover(double coverage);
