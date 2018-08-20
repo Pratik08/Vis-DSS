@@ -19,8 +19,8 @@ IVSUMM is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more de
 - `Facility Location Functions` (Representation Models)
 - `Disparity Min` and `Disparity Sum` (Diversity Models)
 - `Set Cover` and `Probabilistic Set Cover` (Coverage Models)
-- `Feature Based Functions`
-- `Graph Cut` and `Saturated Coverage Functions`
+- `Feature Based Functions` (Coverage Models)
+- `Graph Cut` and `Saturated Coverage Functions` (Representation Models)
 
 ## Summarization Algorithms (-summaryAlgo)
 - `Budgeted Greedy Algorithm` (Lazy or naive greedy algorithm under a budget, say, 60 seconds)
