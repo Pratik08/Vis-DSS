@@ -6,16 +6,14 @@
  */
 #include "DeepSimVideoSummarizer.h"
 
-static std::string IntToString(int a)
-{
+static std::string IntToString(int a) {
     stringstream ss;
     ss << a;
     string str = ss.str();
     return str;
 }
 
-float DotProduct(std::vector<float> vec1, std::vector<float> vec2)
-{
+float DotProduct(std::vector<float> vec1, std::vector<float> vec2) {
     if (vec1.size() != vec2.size()) {
         std::cout << "Error: Both vectors need to be of the same size\n";
     }
@@ -33,8 +31,7 @@ float DotProduct(std::vector<float> vec1, std::vector<float> vec2)
     return sim / (sqrt(norm1) * sqrt(norm2));
 }
 
-float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2)
-{
+float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2) {
     if (vec1.size() != vec2.size()) {
         std::cout << "Error: Both vectors need to be of the same size\n";
     }
@@ -54,18 +51,15 @@ float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2)
     return exp(-diff / 2);
 }
 
-DeepSimVideoSummarizer::DeepSimVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer, int summaryFunction, int segmentType,
-                                               int snippetLength, bool debugMode) : videoFile(videoFile), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), segmentType(segmentType),
-    snippetLength(snippetLength), debugMode(debugMode)
-{
+DeepSimVideoSummarizer::DeepSimVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer, int summaryFunction, int segmentType, int snippetLength, bool debugMode) : videoFile(videoFile), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), segmentType(segmentType), snippetLength(snippetLength), debugMode(debugMode) {
     cv::VideoCapture capture(videoFile);
-
-    frameRate = (int) capture.get(CV_CAP_PROP_FPS);
+    frameRate = static_cast<int>(capture.get(CV_CAP_PROP_FPS));
     videoLength = capture.get(CV_CAP_PROP_FRAME_COUNT) / frameRate;
     std::cout << "The video Length is " << videoLength << " and the frameRate is " << frameRate << "\n";
     if (segmentType == 0) {
-        for (int i = 0; i < videoLength; i += snippetLength)
+        for (int i = 0; i < videoLength; i += snippetLength) {
             segmentStartTimes.push_back(i);
+        }
     } else {
         segmentStartTimes = shotDetector(capture);
     }
@@ -77,8 +71,9 @@ void DeepSimVideoSummarizer::extractFeatures() {
     capture.set(CV_CAP_PROP_POS_FRAMES, 0);
     cv::Mat frame;
     std::vector<cv::Mat> CurrVideo = std::vector<cv::Mat> ();
-    if (!capture.isOpened())
+    if (!capture.isOpened()) {
         std::cout << "Error when reading steam" << "\n";
+    }
     int frame_count = 0;
     int samplingRate = 1;
     costList = std::vector<double>();
@@ -89,10 +84,11 @@ void DeepSimVideoSummarizer::extractFeatures() {
             capture >> frame;
             std::vector<float> feat = cc.Predict(frame, featureLayer);
             classifierFeatures.push_back(feat);
-            if (segmentType == 1)
+            if (segmentType == 1) {
                 costList.push_back(SmallShotPenalty);
-            else
+            } else {
                 costList.push_back(1);
+            }
         } else {
             for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
                 capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
@@ -112,12 +108,12 @@ void DeepSimVideoSummarizer::extractFeatures() {
                 labels = labels + res[i].first + ", ";
             }
             labels = labels + res[res.size() - 1].first;
-            cv::putText(frame, labels, cvPoint(30, 30),
-                        cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
-            if (frame.data)
+            cv::putText(frame, labels, cvPoint(30, 30), cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
+            if (frame.data) {
                 cv::imshow("Debug Video", frame);
+            }
             // Press  ESC on keyboard to exit
-            char c = (char)cv::waitKey(25);
+            char c = static_cast<char>(cv::waitKey(25));
             if (c == 27)
                 break;
         }
@@ -127,18 +123,18 @@ void DeepSimVideoSummarizer::extractFeatures() {
     capture.release();
 }
 
-void DeepSimVideoSummarizer::computeKernel(int compare_method)
-{
+void DeepSimVideoSummarizer::computeKernel(int compare_method) {
     // compare_method is the comparision method for similarity (0: DotProduct, 1:GaussianSimilarity)
     float max = 0;
     for (int i = 0; i < n; i++) {
         std::vector<float> currvector;
         for (int j = 0; j < n; j++) {
             float val;
-            if (compare_method == 0)
+            if (compare_method == 0) {
                 val = DotProduct(classifierFeatures[i], classifierFeatures[j]);
-            else
+            } else {
                 val = GaussianSimilarity(classifierFeatures[i], classifierFeatures[j]);
+            }
             currvector.push_back(val);
         }
         kernel.push_back(currvector);
@@ -196,8 +192,9 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         DisparityMin dM(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(dM, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -208,8 +205,9 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         MMR m(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(m, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -220,8 +218,9 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(fL, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -232,8 +231,9 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
         vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(gC, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -244,8 +244,9 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
         vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(sC, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -286,15 +287,13 @@ void DeepSimVideoSummarizer::summarizeCover(double coverage) {
     // cout << "Done with summarization\n" << flush;
 }
 
-void DeepSimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
-{
+void DeepSimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
     cv::VideoCapture capture(videoFile);
     cv::Mat frame;
     capture.set(CV_CAP_PROP_POS_FRAMES, 0);
     cv::VideoWriter videoWriter;
     if (videoFileSave != "")
-        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), (int) capture.get(CV_CAP_PROP_FPS),
-                                      cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
     for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[*it] * frameRate);
         for (int i = segmentStartTimes[*it]; i < segmentStartTimes[*it + 1]; i++) {
@@ -302,22 +301,24 @@ void DeepSimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
                 capture >> frame;
                 cv::putText(frame, "Time: " + IntToString(i) + " seconds", cvPoint(30, 30),
                             cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
-                if (frame.data)
+                if (frame.data) {
                     cv::imshow("Summary Video", frame);
-                if (videoFileSave != "")
+                }
+                if (videoFileSave != "") {
                     videoWriter.write(frame);
+                }
                 // Press  ESC on keyboard to exit
-                char c = (char)cv::waitKey(25);
-                if (c == 27)
+                char c = static_cast<char>(cv::waitKey(25));
+                if (c == 27) {
                     break;
+                }
             }
         }
     }
     capture.release();
 }
 
-void DeepSimVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size)
-{
+void DeepSimVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size) {
     int summary_x = ceil(sqrt(summarySet.size()));
     int summary_y = ceil(summarySet.size() / summary_x);
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
@@ -333,9 +334,11 @@ void DeepSimVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, i
     cv::Mat collagesummary = cv::Mat(image_size * summary_y, image_size * summary_x, CV_8UC3);
     tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
-    if (imageFileSave != "")
+    if (imageFileSave != "") {
         cv::imwrite(imageFileSave, collagesummary);
-    char c = (char)cv::waitKey(0);
-    if (c == 27)
+    }
+    char c = static_cast<char>(cv::waitKey(0));
+    if (c == 27) {
         return;
+    }
 }

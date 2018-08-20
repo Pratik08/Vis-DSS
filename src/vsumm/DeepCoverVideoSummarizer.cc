@@ -19,7 +19,7 @@ DeepCoverVideoSummarizer::DeepCoverVideoSummarizer(char* videoFile, CaffeClassif
     snippetLength(snippetLength), debugMode(debugMode) {
     cv::VideoCapture capture(videoFile);
 
-    frameRate = (int) capture.get(CV_CAP_PROP_FPS);
+    frameRate = static_cast<int>(capture.get(CV_CAP_PROP_FPS));
     videoLength = capture.get(CV_CAP_PROP_FRAME_COUNT) / frameRate;
     std::cout << "The video Length is " << videoLength << " and the frameRate is " << frameRate << "\n";
     if (segmentType == 0) {
@@ -108,7 +108,7 @@ void DeepCoverVideoSummarizer::extractFeatures() {
             if (frame.data)
                 cv::imshow("Debug Video", frame);
             // Press  ESC on keyboard to exit
-            char c = (char)cv::waitKey(25);
+            char c = static_cast<char>(cv::waitKey(25));
             if (c == 27)
                 break;
         }
@@ -185,15 +185,14 @@ void DeepCoverVideoSummarizer::summarizeCover(double coverage) {
     // cout << "Done with summarization\n" << flush;
 }
 
-void DeepCoverVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
-{
+void DeepCoverVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
     cv::VideoCapture capture(videoFile);
     cv::Mat frame;
     capture.set(CV_CAP_PROP_POS_FRAMES, 0);
     cv::VideoWriter videoWriter;
-    if (videoFileSave != "")
-        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), (int) capture.get(CV_CAP_PROP_FPS),
-                                      cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+    if (videoFileSave != "") {
+        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+    }
     for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[*it] * frameRate);
         for (int i = segmentStartTimes[*it]; i < segmentStartTimes[*it + 1]; i++) {
@@ -201,22 +200,24 @@ void DeepCoverVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
                 capture >> frame;
                 cv::putText(frame, "Time: " + IntToString(i) + " seconds", cvPoint(30, 30),
                             cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
-                if (frame.data)
+                if (frame.data) {
                     cv::imshow("Summary Video", frame);
-                if (videoFileSave != "")
+                }
+                if (videoFileSave != "") {
                     videoWriter.write(frame);
+                }
                 // Press  ESC on keyboard to exit
-                char c = (char)cv::waitKey(25);
-                if (c == 27)
+                char c = static_cast<char>(cv::waitKey(25));
+                if (c == 27) {
                     break;
+                }
             }
         }
     }
     capture.release();
 }
 
-void DeepCoverVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size)
-{
+void DeepCoverVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size) {
     int summary_x = ceil(sqrt(summarySet.size()));
     int summary_y = ceil(summarySet.size() / summary_x);
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
@@ -232,9 +233,11 @@ void DeepCoverVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave,
     cv::Mat collagesummary = cv::Mat(image_size * summary_y, image_size * summary_x, CV_8UC3);
     tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
-    if (imageFileSave != "")
+    if (imageFileSave != "") {
         cv::imwrite(imageFileSave, collagesummary);
-    char c = (char)cv::waitKey(0);
-    if (c == 27)
+    }
+    char c = static_cast<char>(cv::waitKey(0));
+    if (c == 27) {
         return;
+    }
 }
