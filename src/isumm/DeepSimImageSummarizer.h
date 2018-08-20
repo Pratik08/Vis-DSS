@@ -34,9 +34,8 @@
 class DeepSimImageSummarizer {
  protected:
     std::vector<cv::Mat> ImageCollection;
-    int summaryFunction;
-     // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
-    int n;   // ground truth size
+    int summaryFunction;  // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
+    int n;  // ground truth size
     std::vector< std::vector<float> > classifierFeatures;
     std::set<int> summarySet;
     std::vector<double> costList;
@@ -56,4 +55,4 @@ class DeepSimImageSummarizer {
     void playAndSaveSummaryVideo(char* videoFileSave, int frameSize = 500);
     void displayAndSaveSummaryMontage(char* imageFileSave, int image_size);
 };
-#endif   // SRC_ISUMM_DEEPSIMIMAGESUMMARIZER_H_
+#endif  // SRC_ISUMM_DEEPSIMIMAGESUMMARIZER_H_

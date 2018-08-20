@@ -224,7 +224,7 @@ void SimpleImageSummarizer::playAndSaveSummaryVideo(char* videoFileSave, int fra
 
 void SimpleImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size) {
     int summary_x = ceil(sqrt(summarySet.size()));
-    int summary_y = ceil((double)summarySet.size() / summary_x);
+    int summary_y = ceil(static_cast<double>(summarySet.size() / summary_x));
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
     for (set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         summaryimages.push_back(ImageCollection[*it]);

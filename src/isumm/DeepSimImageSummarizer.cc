@@ -6,16 +6,14 @@
  */
 #include "DeepSimImageSummarizer.h"
 
-static std::string IntToString(int a)
-{
+static std::string IntToString(int a) {
     stringstream ss;
     ss << a;
     string str = ss.str();
     return str;
 }
 
-float DotProduct(std::vector<float> vec1, std::vector<float> vec2)
-{
+float DotProduct(std::vector<float> vec1, std::vector<float> vec2) {
     if (vec1.size() != vec2.size()) {
         std::cout << "Error: Both vectors need to be of the same size\n";
     }
@@ -33,8 +31,7 @@ float DotProduct(std::vector<float> vec1, std::vector<float> vec2)
     return sim / (sqrt(norm1) * sqrt(norm2));
 }
 
-float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2)
-{
+float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2) {
     if (vec1.size() != vec2.size()) {
         std::cout << "Error: Both vectors need to be of the same size\n";
     }
@@ -54,18 +51,14 @@ float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2)
     return exp(-diff / 2);
 }
 
-DeepSimImageSummarizer::DeepSimImageSummarizer(std::vector<cv::Mat>& ImageCollection, CaffeClassifier& cc, std::string featureLayer,
-                                               int summaryFunction, bool debugMode) : ImageCollection(ImageCollection), cc(cc), featureLayer(featureLayer),
-    summaryFunction(summaryFunction), debugMode(debugMode)
-{
+DeepSimImageSummarizer::DeepSimImageSummarizer(std::vector<cv::Mat>& ImageCollection, CaffeClassifier& cc, std::string featureLayer, int summaryFunction, bool debugMode) : ImageCollection(ImageCollection), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), debugMode(debugMode) {
     n = ImageCollection.size();
     for (int i = 0; i < n; i++) {
         costList.push_back(1);
     }
 }
 
-void DeepSimImageSummarizer::extractFeatures()
-{
+void DeepSimImageSummarizer::extractFeatures() {
     classifierFeatures.clear();
     for (int i = 0; i < n; i++) {
         cv::Mat frame = ImageCollection[i].clone();
@@ -82,45 +75,45 @@ void DeepSimImageSummarizer::extractFeatures()
                         cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
             cv::imshow("Debug Image", frame);
             // Press  ESC on keyboard to exit
-            char c = (char)cv::waitKey(25);
-            if(c == 27)
+            char c = static_cast<char>(cv::waitKey(25));
+            if (c == 27) {
                 break;
+            }
         }
     }
 }
 
-void DeepSimImageSummarizer::computeKernel(int compare_method)
-{
+void DeepSimImageSummarizer::computeKernel(int compare_method) {
     // compare_method is the comparision method for similarity (0: DotProduct, 1:GaussianSimilarity)
     float max = 0;
     for (int i = 0; i < n; i++) {
         std::vector<float> currvector;
         for (int j = 0; j < n; j++) {
             float val;
-            if (compare_method == 0)
+            if (compare_method == 0) {
                 val = DotProduct(classifierFeatures[i], classifierFeatures[j]);
-            else
+            } else {
                 val = GaussianSimilarity(classifierFeatures[i], classifierFeatures[j]);
+            }
             currvector.push_back(val);
         }
         kernel.push_back(currvector);
     }
 }
 
-void DeepSimImageSummarizer::summarizeBudget(int budget)
-{
+void DeepSimImageSummarizer::summarizeBudget(int budget) {
     std::cout << "Begin summarization\n" << std::flush;
     Set optSet;
     if (summaryFunction == 0) {
         DisparityMin dM(n, kernel);
-        int inititem = 1; // rand()%n;
+        int inititem = 1;  // rand()%n;
         optSet.insert(inititem);
         naiveGreedyMaxKnapsack(dM, costList, budget, optSet, 1, false, true);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         int inititem = rand() % n;
         optSet.insert(inititem);
@@ -129,21 +122,21 @@ void DeepSimImageSummarizer::summarizeBudget(int budget)
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         lazyGreedyMaxKnapsack(fL, costList, budget, optSet, 1);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         lazyGreedyMaxKnapsack(gC, costList, budget, optSet, 1);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         lazyGreedyMaxKnapsack(sC, costList, budget, optSet, 1);
         summarySet = std::set<int>();
@@ -157,8 +150,7 @@ void DeepSimImageSummarizer::summarizeBudget(int budget)
     std::cout << "Summarization is done with n = " << n << " and budget = " << budget << "\n" << std::flush;
 }
 
-void DeepSimImageSummarizer::summarizeStream(double epsilon)
-{
+void DeepSimImageSummarizer::summarizeStream(double epsilon) {
     Set optSet;
     if (summaryFunction == 0) {
         DisparityMin dM(n, kernel);
@@ -172,7 +164,7 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon)
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -184,7 +176,7 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon)
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -196,7 +188,7 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon)
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -208,7 +200,7 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon)
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -223,28 +215,27 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon)
     }
 }
 
-void DeepSimImageSummarizer::summarizeCover(double coverage)
-{
+void DeepSimImageSummarizer::summarizeCover(double coverage) {
     Set optSet;
     if (summaryFunction == 0) {
         std::cout << "Cover Summarization is not supported for Disparity Min Function\n";
-    }else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         std::cout << "Cover Summarization is not supported for MMR Function\n";
-    }else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         lazyGreedyMaxSC(fL, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         lazyGreedyMaxSC(gC, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    }else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         lazyGreedyMaxSC(sC, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
@@ -255,8 +246,7 @@ void DeepSimImageSummarizer::summarizeCover(double coverage)
     // cout << "Done with summarization\n" << flush;
 }
 
-void DeepSimImageSummarizer::playAndSaveSummaryVideo(char* videoFileSave, int frameSize)
-{
+void DeepSimImageSummarizer::playAndSaveSummaryVideo(char* videoFileSave, int frameSize) {
     cv::VideoWriter videoWriter;
     if (videoFileSave != "")
         videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), 1,
@@ -271,16 +261,16 @@ void DeepSimImageSummarizer::playAndSaveSummaryVideo(char* videoFileSave, int fr
         if (videoFileSave != "")
             videoWriter.write(frameSq);
         // Press  ESC on keyboard to exit
-        char c = (char)cv::waitKey(500);
-        if(c == 27)
+        char c = static_cast<char>(cv::waitKey(500));
+        if (c == 27) {
             break;
+        }
     }
 }
 
-void DeepSimImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size)
-{
+void DeepSimImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size) {
     int summary_x = ceil(sqrt(summarySet.size()));
-    int summary_y = ceil((double)summarySet.size() / summary_x);
+    int summary_y = ceil(static_cast<double>(summarySet.size() / summary_x));
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
     for (set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         summaryimages.push_back(ImageCollection[*it]);
@@ -289,9 +279,11 @@ void DeepSimImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, i
     cv::Mat collagesummary = cv::Mat::zeros(cv::Size(image_size * summary_x, image_size * summary_y), CV_8UC3);
     tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
-    if (imageFileSave != "")
+    if (imageFileSave != "") {
         cv::imwrite(imageFileSave, collagesummary);
-    char c = (char)cv::waitKey(0);
-    if(c == 27)
+    }
+    char c = static_cast<char>(cv::waitKey(0));
+    if (c == 27) {
         return;
+    }
 }
