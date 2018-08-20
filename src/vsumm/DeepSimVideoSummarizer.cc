@@ -66,7 +66,7 @@ DeepSimVideoSummarizer::DeepSimVideoSummarizer(char* videoFile, CaffeClassifier&
     if (segmentType == 0) {
         for (int i = 0; i < videoLength; i += snippetLength)
             segmentStartTimes.push_back(i);
-    } else  {
+    } else {
         segmentStartTimes = shotDetector(capture);
     }
     capture.release();
@@ -93,7 +93,7 @@ void DeepSimVideoSummarizer::extractFeatures() {
                 costList.push_back(SmallShotPenalty);
             else
                 costList.push_back(1);
-        } else  {
+        } else {
             for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
                 capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
                 capture >> frame;
@@ -116,7 +116,7 @@ void DeepSimVideoSummarizer::extractFeatures() {
                         cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
             if (frame.data)
                 cv::imshow("Debug Video", frame);
-             // Press  ESC on keyboard to exit
+            // Press  ESC on keyboard to exit
             char c = (char)cv::waitKey(25);
             if (c == 27)
                 break;
@@ -129,7 +129,7 @@ void DeepSimVideoSummarizer::extractFeatures() {
 
 void DeepSimVideoSummarizer::computeKernel(int compare_method)
 {
-     // compare_method is the comparision method for similarity (0: DotProduct, 1:GaussianSimilarity)
+    // compare_method is the comparision method for similarity (0: DotProduct, 1:GaussianSimilarity)
     float max = 0;
     for (int i = 0; i < n; i++) {
         std::vector<float> currvector;
@@ -156,7 +156,7 @@ void DeepSimVideoSummarizer::summarizeBudget(int budget) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         int inititem = rand() % n;
         optSet.insert(inititem);
@@ -165,21 +165,21 @@ void DeepSimVideoSummarizer::summarizeBudget(int budget) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         lazyGreedyMaxKnapsack(fL, costList, budget, optSet, 1);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         lazyGreedyMaxKnapsack(gC, costList, budget, optSet, 1);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         lazyGreedyMaxKnapsack(sC, costList, budget, optSet, 1);
         summarySet = std::set<int>();
@@ -187,7 +187,7 @@ void DeepSimVideoSummarizer::summarizeBudget(int budget) {
             summarySet.insert(*it);
         }
     }
-     // cout << "Done with summarization\n" << flush;
+    // cout << "Done with summarization\n" << flush;
 }
 
 void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
@@ -204,7 +204,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -216,7 +216,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -228,7 +228,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -240,7 +240,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -259,23 +259,23 @@ void DeepSimVideoSummarizer::summarizeCover(double coverage) {
     Set optSet;
     if (summaryFunction == 0) {
         std::cout << "Cover Summarization is not supported for Disparity Min Function\n";
-    } else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         std::cout << "Cover Summarization is not supported for MMR Function\n";
-    } else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         lazyGreedyMaxSC(fL, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         lazyGreedyMaxSC(gC, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         lazyGreedyMaxSC(sC, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
@@ -283,7 +283,7 @@ void DeepSimVideoSummarizer::summarizeCover(double coverage) {
             summarySet.insert(*it);
         }
     }
-     // cout << "Done with summarization\n" << flush;
+    // cout << "Done with summarization\n" << flush;
 }
 
 void DeepSimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
@@ -306,7 +306,7 @@ void DeepSimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
                     cv::imshow("Summary Video", frame);
                 if (videoFileSave != "")
                     videoWriter.write(frame);
-                 // Press  ESC on keyboard to exit
+                // Press  ESC on keyboard to exit
                 char c = (char)cv::waitKey(25);
                 if (c == 27)
                     break;
@@ -331,7 +331,7 @@ void DeepSimVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, i
     }
     capture.release();
     cv::Mat collagesummary = cv::Mat(image_size * summary_y, image_size * summary_x, CV_8UC3);
-    tile(summaryimages, collagesummary, summary_x, summary_y);
+    tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
     if (imageFileSave != "")
         cv::imwrite(imageFileSave, collagesummary);

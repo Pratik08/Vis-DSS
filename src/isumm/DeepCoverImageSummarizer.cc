@@ -143,7 +143,7 @@ void DeepCoverImageSummarizer::playAndSaveSummaryVideo(char* videoFileSave, int 
         if (videoFileSave != "") {
             videoWriter.write(frameSq);
         }
-         // Press  ESC on keyboard to exit
+        // Press  ESC on keyboard to exit
         char c = static_cast<char>(cv::waitKey(500));
         if (c == 27)
             break;
@@ -157,8 +157,8 @@ void DeepCoverImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave,
     for (set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         summaryimages.push_back(ImageCollection[*it]);
     }
-    cv::Mat collagesummary = cv::Mat(image_size * summary_y, image_size * summary_x, CV_8UC3);
-    tile(summaryimages, collagesummary, summary_x, summary_y);
+    cv::Mat collagesummary = cv::Mat::zeros(cv::Size(image_size * summary_x, image_size * summary_y), CV_8UC3);
+    tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
     if (imageFileSave != "") {
         cv::imwrite(imageFileSave, collagesummary);

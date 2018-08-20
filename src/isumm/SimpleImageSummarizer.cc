@@ -224,13 +224,13 @@ void SimpleImageSummarizer::playAndSaveSummaryVideo(char* videoFileSave, int fra
 
 void SimpleImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size) {
     int summary_x = ceil(sqrt(summarySet.size()));
-    int summary_y = ceil(summarySet.size() / summary_x);
+    int summary_y = ceil((double)summarySet.size() / summary_x);
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
     for (set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         summaryimages.push_back(ImageCollection[*it]);
     }
-    cv::Mat collagesummary = cv::Mat(image_size * summary_y, image_size * summary_x, CV_8UC3);
-    tile(summaryimages, collagesummary, summary_x, summary_y);
+    cv::Mat collagesummary = cv::Mat::zeros(cv::Size(image_size * summary_x, image_size * summary_y), CV_8UC3);
+    tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
     if (imageFileSave != "") {
         cv::imwrite(imageFileSave, collagesummary);

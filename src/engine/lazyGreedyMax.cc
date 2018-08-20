@@ -29,7 +29,7 @@ void lazyGreedyMax(const SetFunctions& f, double budget, Set& greedySet, int ver
     double currentCost = 0;
 
     if (!precomputeSet) {
-        f.setpreCompute(greedySet);  // clear the precomputed statistics, in case it is already not cleared, and set it to the greedySet.
+        // f.setpreCompute(greedySet);  // clear the precomputed statistics, in case it is already not cleared, and set it to the greedySet.
     }
 
     // accelerated greedy algorithm implementation

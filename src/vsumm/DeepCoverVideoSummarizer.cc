@@ -68,7 +68,7 @@ void DeepCoverVideoSummarizer::extractFeatures() {
                 costList.push_back(SmallShotPenalty);
             else
                 costList.push_back(1);
-        } else  {
+        } else {
             for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
                 capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
                 capture >> frame;
@@ -107,7 +107,7 @@ void DeepCoverVideoSummarizer::extractFeatures() {
                         cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
             if (frame.data)
                 cv::imshow("Debug Video", frame);
-             // Press  ESC on keyboard to exit
+            // Press  ESC on keyboard to exit
             char c = (char)cv::waitKey(25);
             if (c == 27)
                 break;
@@ -139,14 +139,14 @@ void DeepCoverVideoSummarizer::summarizeBudget(int budget) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         SetCover sc(n, coverSet);
         lazyGreedyMaxKnapsack(sc, costList, budget, optSet, 1);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         ProbabilisticSetCover psc(n, nConcepts, pVec);
         lazyGreedyMaxKnapsack(psc, costList, budget, optSet, 1);
         summarySet = std::set<int>();
@@ -154,7 +154,7 @@ void DeepCoverVideoSummarizer::summarizeBudget(int budget) {
             summarySet.insert(*it);
         }
     }
-     // cout << "Done with summarization\n" << flush;
+    // cout << "Done with summarization\n" << flush;
 }
 
 void DeepCoverVideoSummarizer::summarizeCover(double coverage) {
@@ -167,14 +167,14 @@ void DeepCoverVideoSummarizer::summarizeCover(double coverage) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         SetCover sc(n, coverSet);
         lazyGreedyMaxSC(sc, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         ProbabilisticSetCover psc(n, nConcepts, pVec);
         lazyGreedyMaxSC(psc, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
@@ -182,7 +182,7 @@ void DeepCoverVideoSummarizer::summarizeCover(double coverage) {
             summarySet.insert(*it);
         }
     }
-     // cout << "Done with summarization\n" << flush;
+    // cout << "Done with summarization\n" << flush;
 }
 
 void DeepCoverVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
@@ -205,7 +205,7 @@ void DeepCoverVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
                     cv::imshow("Summary Video", frame);
                 if (videoFileSave != "")
                     videoWriter.write(frame);
-                 // Press  ESC on keyboard to exit
+                // Press  ESC on keyboard to exit
                 char c = (char)cv::waitKey(25);
                 if (c == 27)
                     break;
@@ -230,7 +230,7 @@ void DeepCoverVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave,
     }
     capture.release();
     cv::Mat collagesummary = cv::Mat(image_size * summary_y, image_size * summary_x, CV_8UC3);
-    tile(summaryimages, collagesummary, summary_x, summary_y);
+    tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
     if (imageFileSave != "")
         cv::imwrite(imageFileSave, collagesummary);

@@ -39,8 +39,7 @@ char* help;
 
 Arg Arg::Args[]={
     Arg("directory", Arg::Req, directory, "Input Image Collection Directory",Arg::SINGLE),
-    Arg("videoSaveFile", Arg::Req, videoSaveFile, "Input Video File",Arg::SINGLE),
-    Arg("imageSaveFile", Arg::Req, videoSaveFile, "Output Summary Image File",Arg::SINGLE),
+    Arg("imageSaveFile", Arg::Req, imageSaveFile, "Output Summary Image File",Arg::SINGLE),
     Arg("summaryModelSim", Arg::Opt, summaryFunctionSim, "Summarization Model -- 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage",Arg::SINGLE),
     Arg("summaryModelCover", Arg::Opt, summaryFunctionCover, "Summarization Model -- 0: FeatureBasedFunction, 1: Set Cover, 2: Probabilistic Set Cover",Arg::SINGLE),
     Arg("simcover", Arg::Req, simcover, "0: Similarity Based Functions, 1: Coverage Based Functions",Arg::SINGLE),
@@ -65,19 +64,22 @@ int main(int argc, char** argv) {
       Arg::usage(); exit(-1);
   }
   DIR *dir;
-  std::string dirName = string(directory);
+  std::string dirName = std::string(directory);
   std::string imgName;
   struct dirent *ent;
+  CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
   std::vector<cv::Mat> ImageCollection = std::vector<cv::Mat>();
+  std::cout << dirName << "\n";
+  dir = opendir (directory);
   if (dir != NULL) {
       while ((ent = readdir (dir)) != NULL) {
           imgName = dirName + "/" + ent->d_name;
-          std::cout<<imgName<<" ";
+          std::cout<<imgName<<"\n";
           cv::Mat img = cv::imread(imgName);
-          ImageCollection.push_back(img);
+          if(!img.empty())
+              ImageCollection.push_back(img);
         }
   }
-  CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
   if (simcover == 0)
   {
       DeepSimImageSummarizer IS(ImageCollection, cc, featureLayer, summaryFunctionSim);

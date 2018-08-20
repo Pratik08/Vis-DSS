@@ -27,7 +27,7 @@ SimpleVideoSummarizer::SimpleVideoSummarizer(char* videoFile, int summaryFunctio
     if (segmentType == 0) {
         for (int i = 0; i < videoLength; i += snippetLength)
             segmentStartTimes.push_back(i);
-    } else  {
+    } else {
         segmentStartTimes = shotDetector(capture);
     }
     capture.release();
@@ -55,7 +55,7 @@ void SimpleVideoSummarizer::extractFeatures(double resizeParam) {
                 costList.push_back(SmallShotPenalty);
             else
                 costList.push_back(1);
-        } else  {
+        } else {
             for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
                 capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
                 capture >> frame;
@@ -76,8 +76,8 @@ void SimpleVideoSummarizer::extractFeatures(double resizeParam) {
 
 void SimpleVideoSummarizer::computeKernel(int compare_method, double gamma)
 {
-     // compare_method is the comparision method for histogram similarity
-     // gamma is a power of the similarity function: s_{ij} = sim(H_i, H_j)^{\gamma}
+    // compare_method is the comparision method for histogram similarity
+    // gamma is a power of the similarity function: s_{ij} = sim(H_i, H_j)^{\gamma}
     float max = 0;
     for (int i = 0; i < n; i++) {
         std::vector<float> currvector;
@@ -113,7 +113,7 @@ void SimpleVideoSummarizer::summarizeBudget(int budget) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         int inititem = rand() % n;
         optSet.insert(inititem);
@@ -122,21 +122,21 @@ void SimpleVideoSummarizer::summarizeBudget(int budget) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         lazyGreedyMaxKnapsack(fL, costList, budget, optSet, 1);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         lazyGreedyMaxKnapsack(gC, costList, budget, optSet, 1);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         lazyGreedyMaxKnapsack(sC, costList, budget, optSet, 1);
         summarySet = std::set<int>();
@@ -144,7 +144,7 @@ void SimpleVideoSummarizer::summarizeBudget(int budget) {
             summarySet.insert(*it);
         }
     }
-     // cout << "Done with summarization\n" << flush;
+    // cout << "Done with summarization\n" << flush;
 }
 
 void SimpleVideoSummarizer::summarizeStream(double epsilon) {
@@ -161,7 +161,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -173,7 +173,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -185,7 +185,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -197,7 +197,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
         vector<int> order(n, 1);
@@ -216,23 +216,23 @@ void SimpleVideoSummarizer::summarizeCover(double coverage) {
     Set optSet;
     if (summaryFunction == 0) {
         std::cout << "Cover Summarization is not supported for Disparity Min Function\n";
-    } else if (summaryFunction == 1)  {
+    } else if (summaryFunction == 1) {
         std::cout << "Cover Summarization is not supported for MMR Function\n";
-    } else if (summaryFunction == 2)  {
+    } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         lazyGreedyMaxSC(fL, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 3)  {
+    } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         lazyGreedyMaxSC(gC, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
         }
-    } else if (summaryFunction == 4)  {
+    } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         lazyGreedyMaxSC(sC, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
@@ -240,7 +240,7 @@ void SimpleVideoSummarizer::summarizeCover(double coverage) {
             summarySet.insert(*it);
         }
     }
-     // cout << "Done with summarization\n" << flush;
+    // cout << "Done with summarization\n" << flush;
 }
 
 void SimpleVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
@@ -263,7 +263,7 @@ void SimpleVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave)
                     cv::imshow("Summary Video", frame);
                 if (videoFileSave != "")
                     videoWriter.write(frame);
-                 // Press  ESC on keyboard to exit
+                // Press  ESC on keyboard to exit
                 char c = (char)cv::waitKey(25);
                 if (c == 27)
                     break;
@@ -288,7 +288,7 @@ void SimpleVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, in
     }
     capture.release();
     cv::Mat collagesummary = cv::Mat(image_size * summary_y, image_size * summary_x, CV_8UC3);
-    tile(summaryimages, collagesummary, summary_x, summary_y);
+    tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
     if (imageFileSave != "")
         cv::imwrite(imageFileSave, collagesummary);

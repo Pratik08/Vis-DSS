@@ -20,7 +20,7 @@ bool isEquality, Set groundSet, bool grSetn)
     int iter = 0;
     if (!precomputeSet)
     {
-        f.setpreCompute(greedySet); // clear the precomputed statistics, in case it is already not cleared, and set it to the greedySet.
+        // f.setpreCompute(greedySet); // clear the precomputed statistics, in case it is already not cleared, and set it to the greedySet.
     }
     // naive greedy algorithm implementation
     Set::iterator it;
