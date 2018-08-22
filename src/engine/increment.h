@@ -4,8 +4,8 @@
     Anthor: Rishabh Iyer
  *
  */
-#ifndef __INCREMENT__
-#define __INCREMENT__
+#ifndef SRC_ENGINE_INCREMENT_H_
+#define SRC_ENGINE_INCREMENT_H_
 
 class Increment {
  public:
@@ -19,4 +19,4 @@ class Increment {
     double value;
 };
 
-#endif
+#endif  // SRC_ENGINE_INCREMENT_H_
