@@ -15,9 +15,10 @@
 
  *
  */
-#ifndef LAZY_GREEDY_MAX
-#define LAZY_GREEDY_MAX
+#ifndef SRC_ENGINE_LAZYGREEDYMAX_H_
+#define SRC_ENGINE_LAZYGREEDYMAX_H_
 
+#include <vector>
 #include "set.h"
 #include "SetFunctions.h"
 
@@ -25,10 +26,9 @@ void lazyGreedyMax(const SetFunctions& f, double budget, Set& greedySet, int ver
                    bool equalityConstraint = false, Set groundSet = Set(), bool grSetn = true);
 
 void lazyGreedyMaxKnapsack(SetFunctions& f, std::vector<double>& costList, double budget, Set& greedySet,
-                  int verbosity = 1, double alpha = 1, Set groundSet = Set(), bool grSetn = true);
+                           int verbosity = 1, double alpha = 1, Set groundSet = Set(), bool grSetn = true);
 
 void lazyGreedyMaxSC(SetFunctions& f, std::vector<double>& costList, double cover, Set& greedySet, int verbosity = 1,
-                  double alpha = 1, Set groundSet = Set(), bool grSetn = true);
+                     double alpha = 1, Set groundSet = Set(), bool grSetn = true);
 
-
-#endif
+#endif  // SRC_ENGINE_LAZYGREEDYMAX_H_
