@@ -42,25 +42,25 @@ bool debug = true;
 int featMode;
 int summary_grid = 60;
 
-Arg Arg::Args[]={
-    Arg("videoFile", Arg::Req, videoFile, "Input Video File",Arg::SINGLE),
-    Arg("imageSaveFile", Arg::Req, imageSaveFile, "Input Video File",Arg::SINGLE),
-    Arg("summaryModel", Arg::Req, summaryFunctionSim, "Summarization Model -- 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage",Arg::SINGLE),
-    Arg("summaryAlgo", Arg::Req, summaryAlgo, "Summarization Algorithm: 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization",Arg::SINGLE),
-    Arg("summarygrid", Arg::Opt, summary_grid, "Size of a image in the full grid",Arg::SINGLE),
-    Arg("featureLayer", Arg::Opt, featureLayer, "Layer Name for Feature Extraction",Arg::SINGLE),
-    Arg("network_file", Arg::Opt, network_file, "Input Network File",Arg::SINGLE),
-    Arg("trained_file", Arg::Opt, trained_file, "Trained Model File",Arg::SINGLE),
-    Arg("mean_file", Arg::Opt, mean_file, "Mean File",Arg::SINGLE),
-    Arg("label_file", Arg::Opt, label_file, "Label File",Arg::SINGLE),
-    Arg("landmarking_model_file", Arg::Opt, landmarking_model_file, "Mean File",Arg::SINGLE),
-    Arg("pretrained_resnet_file", Arg::Opt, pretrained_resnet_file, "Label File",Arg::SINGLE),
+Arg Arg::Args[] = {
+    Arg("videoFile", Arg::Req, videoFile, "Input Video File", Arg::SINGLE),
+    Arg("imageSaveFile", Arg::Req, imageSaveFile, "Input Video File", Arg::SINGLE),
+    Arg("summaryModel", Arg::Req, summaryFunctionSim, "Summarization Model -- 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage", Arg::SINGLE),
+    Arg("summaryAlgo", Arg::Req, summaryAlgo, "Summarization Algorithm: 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization", Arg::SINGLE),
+    Arg("summarygrid", Arg::Opt, summary_grid, "Size of a image in the full grid", Arg::SINGLE),
+    Arg("featureLayer", Arg::Opt, featureLayer, "Layer Name for Feature Extraction", Arg::SINGLE),
+    Arg("network_file", Arg::Opt, network_file, "Input Network File", Arg::SINGLE),
+    Arg("trained_file", Arg::Opt, trained_file, "Trained Model File", Arg::SINGLE),
+    Arg("mean_file", Arg::Opt, mean_file, "Mean File", Arg::SINGLE),
+    Arg("label_file", Arg::Opt, label_file, "Label File", Arg::SINGLE),
+    Arg("landmarking_model_file", Arg::Opt, landmarking_model_file, "Mean File", Arg::SINGLE),
+    Arg("pretrained_resnet_file", Arg::Opt, pretrained_resnet_file, "Label File", Arg::SINGLE),
     Arg("featMode", Arg::Req, featMode, "Feature Mode: 0 (Caffe), 1(Dlib)"),
-    Arg("network_file_face", Arg::Req, network_file_face, "Input Network File for Face detection",Arg::SINGLE),
-    Arg("trained_file_face", Arg::Req, trained_file_face, "Trained Model File for Face detection",Arg::SINGLE),
-    Arg("mean_file_face", Arg::Opt, mean_file_face, "Mean File for Face detection",Arg::SINGLE),
-    Arg("label_file_face", Arg::Req, label_file_face, "Label File for Face detection",Arg::SINGLE),
-    Arg("threshold_face", Arg::Opt, threshold_face, "Label File for Face detection",Arg::SINGLE),
+    Arg("network_file_face", Arg::Req, network_file_face, "Input Network File for Face detection", Arg::SINGLE),
+    Arg("trained_file_face", Arg::Req, trained_file_face, "Trained Model File for Face detection", Arg::SINGLE),
+    Arg("mean_file_face", Arg::Opt, mean_file_face, "Mean File for Face detection", Arg::SINGLE),
+    Arg("label_file_face", Arg::Req, label_file_face, "Label File for Face detection", Arg::SINGLE),
+    Arg("threshold_face", Arg::Opt, threshold_face, "Label File for Face detection", Arg::SINGLE),
     Arg("budget", Arg::Opt, budget, "Budget for summarization (if summarization algo is 0)", Arg::SINGLE),
     Arg("thredshold", Arg::Opt, thresh, "Threshold for summarization (if summarization algo is 1)", Arg::SINGLE),
     Arg("coverage fraction", Arg::Opt, coverfrac, "coverage fraction for summarization (if summarization algo is 2)", Arg::SINGLE),
@@ -70,52 +70,39 @@ Arg Arg::Args[]={
 
 int main(int argc, char** argv){
 
-  bool parse_was_ok = Arg::parse(argc,(char**)argv);
-  if(!parse_was_ok){
-      Arg::usage(); exit(-1);
-  }
-  if (featMode == 0)
-  {
-      DNNClassifier dnnc("FACE", "RESNET", network_file_face, trained_file_face, mean_file_face, label_file_face, threshold_face);
-      CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
-      EntitySimVideoSummarizer ES(videoFile, cc, dnnc, featureLayer, summaryFunctionSim);
-      ES.extractFeatures();
-      ES.computeKernel();
-      if (summaryAlgo == 0)
-      {
-          ES.summarizeBudget(budget);
-      }
-      else if (summaryAlgo == 1)
-      {
-          ES.summarizeStream(thresh);
-      }
-      else if (summaryAlgo == 2)
-      {
-          ES.summarizeCover(coverfrac);
-      }
-      ES.displayAndSaveSummaryMontage(imageSaveFile, summary_grid);
-  }
-  else if (featMode == 1)
-  {
-    DNNClassifier dnnc("FACE", "RESNET", network_file_face, trained_file_face, mean_file_face, label_file_face);
-    DlibClassifier dlibc(landmarking_model_file, pretrained_resnet_file);
-    EntitySimVideoSummarizer ES(videoFile, dlibc, dnnc, featureLayer, summaryFunctionSim);
-    ES.extractFeatures();
-    ES.computeKernel();
-    if (summaryAlgo == 0)
-    {
-        ES.summarizeBudget(budget);
+    bool parse_was_ok = Arg::parse(argc, (char**)argv);
+    if(!parse_was_ok) {
+        Arg::usage(); exit(-1);
     }
-    else if (summaryAlgo == 1)
-    {
-        ES.summarizeStream(thresh);
-    }
-    else if (summaryAlgo == 2)
-    {
-        ES.summarizeCover(coverfrac);
-    }
-    std::cout << "Done with the summarization\n" << std::flush;
-    ES.displayAndSaveSummaryMontage(imageSaveFile, summary_grid);
+    if (featMode == 0) {
+        DNNClassifier dnnc("FACE", "RESNET", network_file_face, trained_file_face, mean_file_face, label_file_face, threshold_face);
+        CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
+        EntitySimVideoSummarizer ES(videoFile, cc, dnnc, featureLayer, summaryFunctionSim);
+        ES.extractFeatures();
+        ES.computeKernel();
+        if (summaryAlgo == 0) {
+            ES.summarizeBudget(budget);
+        }else if (summaryAlgo == 1) {
+            ES.summarizeStream(thresh);
+        }else if (summaryAlgo == 2) {
+            ES.summarizeCover(coverfrac);
+        }
+        ES.displayAndSaveSummaryMontage(imageSaveFile, summary_grid);
+    } else if (featMode == 1) {
+        DNNClassifier dnnc("FACE", "RESNET", network_file_face, trained_file_face, mean_file_face, label_file_face);
+        DlibClassifier dlibc(landmarking_model_file, pretrained_resnet_file);
+        EntitySimVideoSummarizer ES(videoFile, dlibc, dnnc, featureLayer, summaryFunctionSim);
+        ES.extractFeatures();
+        ES.computeKernel();
+        if (summaryAlgo == 0) {
+            ES.summarizeBudget(budget);
+        } else if (summaryAlgo == 1) {
+            ES.summarizeStream(thresh);
+        } else if (summaryAlgo == 2) {
+            ES.summarizeCover(coverfrac);
+        }
+        std::cout << "Done with the summarization\n" << std::flush;
+        ES.displayAndSaveSummaryMontage(imageSaveFile, summary_grid);
 
-  }
+    }
 }

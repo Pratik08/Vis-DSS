@@ -1,13 +1,13 @@
 /*
     $Header: /homes/bilmes/.cvsroot/gmtk_dev/miscSupport/error.h,v 1.6 2007/08/20 02:17:11 bilmes Exp $
-  
+
     Simple fatal error function.
     Jeff Bilmes <bilmes@cs.berkeley.edu>
-*/
+ */
 
 
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef SRC_UTILS_ERROR_H_
+#define SRC_UTILS_ERROR_H_
 
 #ifndef EXIT_SUCCESS
 #include <stdlib.h>
@@ -19,7 +19,7 @@
 void error(const char * const format, ...);
 void coredump(const char * constformat, ...);
 void warning(const char * const format, ...);
-void ensure(const bool condition,const char * const errorIfFail, ...);
+void ensure(const bool condition, const char * const errorIfFail, ...);
 
 
-#endif
+#endif   // SRC_UTILS_ERROR_H_

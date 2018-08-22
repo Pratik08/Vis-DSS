@@ -5,16 +5,16 @@
  *
  */
 
-#ifndef SIMPLE_IMAGE_SUMMARIZER_h
-#define SIMPLE_IMAGE_SUMMARIZER_h
+#ifndef SRC_ISUMM_SIMPLEIMAGESUMMARIZER_H_
+#define SRC_ISUMM_SIMPLEIMAGESUMMARIZER_H_
 
-#include "set.h"
-#include <vector>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/imgproc/imgproc.hpp>
 #include <iostream>
 #include <set>
+#include <vector>
+#include "set.h"
 #include "ColorUtils.h"
 #include "ImageUtils.h"
 #include "ShotDetector.h"
@@ -33,14 +33,14 @@
 class SimpleImageSummarizer {
     // protected:
  protected:
-   std::vector<cv::Mat> ImageCollection;
-   int summaryFunction;
-   // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
-   int n; // ground truth size
-   std::set<int> summarySet;
-   std::vector<double> costList;
-   std::vector<std::vector<float> > kernel;
-   std::vector<cv::Mat> collectionHist;
+    std::vector<cv::Mat> ImageCollection;
+    int summaryFunction;
+    // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
+    int n;  // ground truth size
+    std::set<int> summarySet;
+    std::vector<double> costList;
+    std::vector<std::vector<float> > kernel;
+    std::vector<cv::Mat> collectionHist;
  public:
     // Constructors
     SimpleImageSummarizer(std::vector<cv::Mat>& ImageCollection, int summaryFunction = 0);
@@ -52,4 +52,4 @@ class SimpleImageSummarizer {
     void playAndSaveSummaryVideo(char* videoFileSave, int frameSize = 500);
     void displayAndSaveSummaryMontage(char* imageFileSave, int image_size);
 };
-#endif
+#endif  // SRC_ISUMM_SIMPLEIMAGESUMMARIZER_H_

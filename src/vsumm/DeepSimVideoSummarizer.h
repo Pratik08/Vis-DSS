@@ -5,16 +5,17 @@
  *
  */
 
-#ifndef DEEP_SIM_VIDEO_SUMMARIZER_h
-#define DEEP_SIM_VIDEO_SUMMARIZER_h
+#ifndef SRC_VSUMM_DEEPSIMVIDEOSUMMARIZER_H_
+#define SRC_VSUMM_DEEPSIMVIDEOSUMMARIZER_H_
 
-#include "set.h"
-#include <vector>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
+#include <opencv2/imgproc/imgproc.hpp>
+#include <vector>
 #include <iostream>
 #include <set>
+#include <string>
+#include "set.h"
 #include "ImageUtils.h"
 #include "ColorUtils.h"
 #include "ShotDetector.h"
@@ -33,29 +34,29 @@
 class DeepSimVideoSummarizer {
     // protected:
  protected:
-   char* videoFile;
-   int frameRate;
-   int videoLength; // Length of the video in seconds
-   int summaryFunction;
-   // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
-   int segmentType;
-   // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
-   int snippetLength; // in case of fixed length snippets, the length of the snippetHist
-   std::vector<int> segmentStartTimes; // start times of the individual segments (each segment is an element in the ground set)
-   int n; // ground truth size
-   std::vector< std::vector<float> > classifierFeatures;
-   std::set<int> summarySet;
-   std::vector<double> costList;
-   std::vector<std::vector<float> > kernel;
-   CaffeClassifier cc;
-   std::string featureLayer;
-   double SmallShotPenalty = 10;
-   bool debugMode;
+    char* videoFile;
+    int frameRate;
+    int videoLength;  // Length of the video in seconds
+    int summaryFunction;
+    // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
+    int segmentType;
+    // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
+    int snippetLength;  // in case of fixed length snippets, the length of the snippetHist
+    std::vector<int> segmentStartTimes;  // start times of the individual segments (each segment is an element in the ground set)
+    int n;  // ground truth size
+    std::vector< std::vector<float> > classifierFeatures;
+    std::set<int> summarySet;
+    std::vector<double> costList;
+    std::vector<std::vector<float> > kernel;
+    CaffeClassifier cc;
+    std::string featureLayer;
+    double SmallShotPenalty = 10;
+    bool debugMode;
 
  public:
     // Constructors
     DeepSimVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer,
-      int summaryFunction = 0, int segmentType = 0, int snippetLength = 2, bool debugMode = true);
+                           int summaryFunction = 0, int segmentType = 0, int snippetLength = 2, bool debugMode = true);
     void extractFeatures();
     void computeKernel(int compare_method = 0);
     void summarizeBudget(int budget);
@@ -64,4 +65,4 @@ class DeepSimVideoSummarizer {
     void playAndSaveSummaryVideo(char* videoFileSave);
     void displayAndSaveSummaryMontage(char* imageFileSave, int image_size);
 };
-#endif
+#endif  // SRC_VSUMM_DEEPSIMVIDEOSUMMARIZER_H_
