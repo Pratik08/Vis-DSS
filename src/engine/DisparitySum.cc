@@ -6,14 +6,9 @@
  *
  */
 
-#include <algorithm>
-#include <iostream>
-using namespace std;
-
 #include "DisparitySum.h"
 
-
-DisparitySum::DisparitySum(int n, vector<vector <float> >& kernel) : SetFunctions(n), kernel(kernel) {
+DisparitySum::DisparitySum(int n, std::vector<std::vector<float> >& kernel) : SetFunctions(n), kernel(kernel) {
     sizepreCompute = n;
     preComputeVal = 0;
 }
@@ -42,9 +37,8 @@ DisparitySum::~DisparitySum() {
 double DisparitySum::eval(const Set& sset) const {
 // Evaluation of function valuation.
     double sum = 0;
-
-    for ( Set::const_iterator it = sset.begin(); it != sset.end(); it++ ) {
-        for ( Set::const_iterator it2 = sset.begin(); it2 != sset.end(); it2++) {
+    for (Set::const_iterator it = sset.begin(); it != sset.end(); it++) {
+        for (Set::const_iterator it2 = sset.begin(); it2 != sset.end(); it2++) {
             sum += 1 - kernel[*it][*it2];
         }
     }
@@ -59,7 +53,7 @@ double DisparitySum::evalFast(const Set& sset) const {
 
 double DisparitySum::evalGainsadd(const Set& sset, int item) const {
     if (sset.contains(item)) {
-        cout << "Warning: the provided item belongs to the subset\n";
+        std::cout << "Warning: the provided item belongs to the subset\n";
         return 0;
     }
     double gains = 0;
@@ -74,7 +68,7 @@ double DisparitySum::evalGainsadd(const Set& sset, int item) const {
 
 double DisparitySum::evalGainsremove(const Set& sset, int item) const {
     if (!sset.contains(item)) {
-        cout << "Warning: the provided item does not belong to the subset\n";
+        std::cout << "Warning: the provided item does not belong to the subset\n";
         return 0;
     }
     double gains = 0;
@@ -92,7 +86,6 @@ double DisparitySum::evalGainsaddFast(const Set& sset, int item) const {
 // Fast evaluation of Adding gains using the precomputed statistics. This is used, for example, in the implementation of the forward greedy algorithm.
 // For the sake of speed, we do not check if item does not belong to the subset. You should check this before calling this function.
     double gains = 0;
-
     Set::const_iterator it;
     for (it = sset.begin(); it != sset.end(); it++) {
         gains += (2 - kernel[item][*it] - kernel[*it][item]);
@@ -106,7 +99,6 @@ double DisparitySum::evalGainsremoveFast(const Set& sset, int item) const {
 // Fast evaluation of Removing gains using the precomputed statistics. This is used, for example, in the implementation of the reverse greedy algorithm.
 // For the sake of speed, we do not check if item belong to the subset. You should check this before calling this function.
     double gains = 0;
-
     Set::const_iterator it;
     for (it = sset.begin(); it != sset.end(); it++) {
         if (*it != item)
