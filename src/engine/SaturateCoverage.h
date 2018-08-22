@@ -4,9 +4,13 @@
     Author: Rishabh Iyer.
  *
  */
-#ifndef SATCOVERAGE_SF
-#define SATCOVERAGE_SF
+#ifndef SRC_ENGINE_SATURATECOVERAGE_H_
+#define SRC_ENGINE_SATURATECOVERAGE_H_
+
 #include <vector>
+#include <unordered_set>
+#include <algorithm>
+#include <iostream>
 #include "set.h"
 #include "SetFunctions.h"
 
@@ -34,4 +38,5 @@ class SaturateCoverage : public SetFunctions {
     void setpreCompute(const Set& sset) const;
     void clearpreCompute() const;
 };
-#endif
+
+#endif  // SRC_ENGINE_SATURATECOVERAGE_H_
