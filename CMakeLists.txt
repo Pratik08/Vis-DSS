@@ -26,7 +26,7 @@ add_library(summengine
 	src/engine/increment.cc
   src/engine/lazyGreedyMax.cc
   src/engine/naiveGreedyMax.cc
-	src/engine/streamgreedy.cc
+	src/engine/streamGreedy.cc
   src/utils/error.cc
   src/utils/arguments.cc
 )
