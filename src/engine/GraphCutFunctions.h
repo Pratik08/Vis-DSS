@@ -5,10 +5,12 @@
     Author: Rishabh Iyer
  *
  */
-#ifndef SMTK_GRAPHCUT_SF
-#define SMTK_GRAPHCUT_SF
+#ifndef SRC_ENGINE_GRAPHCUTFUNCTIONS_H_
+#define SRC_ENGINE_GRAPHCUTFUNCTIONS_H_
 
 #include <vector>
+#include <algorithm>
+#include <iostream>
 #include "set.h"
 #include "SetFunctions.h"
 
@@ -36,4 +38,4 @@ class GraphCutFunctions : public SetFunctions {
     void clearpreCompute() const;
 };
 
-#endif
+#endif  // SRC_ENGINE_GRAPHCUTFUNCTIONS_H_

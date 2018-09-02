@@ -4,9 +4,11 @@
  *
  */
 
-#ifndef PROBABILISTIC_SET_COVER
-#define PROBABILISTIC_SET_COVER
+#ifndef SRC_ENGINE_PROBABILISTICSETCOVER_H_
+#define SRC_ENGINE_PROBABILISTICSETCOVER_H_
+
 #include <vector>
+#include <iostream>
 #include "set.h"
 #include "SetFunctions.h"
 
@@ -33,4 +35,4 @@ class ProbabilisticSetCover : public SetFunctions {
     void clearpreCompute() const;
 };
 
-#endif
+#endif  // SRC_ENGINE_PROBABILISTICSETCOVER_H_

@@ -8,7 +8,6 @@
 
 SparseFeature getSparseFeature(std::vector<float>& vec) {
     SparseFeature s;
-
     s.featureIndex = std::vector<int>();
     s.featureVec = std::vector<double>();
     s.index = 0;

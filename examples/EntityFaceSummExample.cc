@@ -1,30 +1,22 @@
-#include "EntitySimVideoSummarizer.h"
-#include <iostream>
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <iostream>
+#include "EntitySimVideoSummarizer.h"
 #include "arguments.h"
-
-using namespace std;
-using namespace cv;
 
 char* videoFile;
 char* imageSaveFile;
-// Video File to analyze
-int summaryFunctionSim = 0;
-// 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
-int summaryFunctionCover = 0;
-// 0: FeatureBasedFunction, 1: Set Cover, 2: Probabilistic Set Cover
+int summaryFunctionSim = 0;  // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
+int summaryFunctionCover = 0;  // 0: FeatureBasedFunction, 1: Set Cover, 2: Probabilistic Set Cover
 int FeatureBasedFnType = 1;
 int simcover = 0;
-int segmentType;
-// 0: Fixed Length Segments, 1: Segments based on Shot Detectors
-int summaryAlgo;
-// 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization
-int snippetLength = 2; // in case of fixed length snippets, the length of the snippetHist
-int budget = 120; // summary budget in seconds
-double thresh = 0.001; // threshold for the stream Algorithm
-double coverfrac = 0.9; // coverage fraction for submodular set cover
+int segmentType;  // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
+int summaryAlgo;  // 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization
+int snippetLength = 2;  // in case of fixed length snippets, the length of the snippetHist
+int budget = 120;  // summary budget in seconds
+double thresh = 0.001;  // threshold for the stream Algorithm
+double coverfrac = 0.9;  // coverage fraction for submodular set cover
 char* network_file = "";
 char* trained_file = "";
 char* mean_file = "";
@@ -68,10 +60,9 @@ Arg Arg::Args[] = {
     Arg()
 };
 
-int main(int argc, char** argv){
-
+int main(int argc, char** argv) {
     bool parse_was_ok = Arg::parse(argc, (char**)argv);
-    if(!parse_was_ok) {
+    if (!parse_was_ok) {
         Arg::usage(); exit(-1);
     }
     if (featMode == 0) {
@@ -82,9 +73,9 @@ int main(int argc, char** argv){
         ES.computeKernel();
         if (summaryAlgo == 0) {
             ES.summarizeBudget(budget);
-        }else if (summaryAlgo == 1) {
+        } else if (summaryAlgo == 1) {
             ES.summarizeStream(thresh);
-        }else if (summaryAlgo == 2) {
+        } else if (summaryAlgo == 2) {
             ES.summarizeCover(coverfrac);
         }
         ES.displayAndSaveSummaryMontage(imageSaveFile, summary_grid);
@@ -103,6 +94,5 @@ int main(int argc, char** argv){
         }
         std::cout << "Done with the summarization\n" << std::flush;
         ES.displayAndSaveSummaryMontage(imageSaveFile, summary_grid);
-
     }
 }

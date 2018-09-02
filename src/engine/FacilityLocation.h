@@ -6,18 +6,20 @@
  *
  */
 
-#ifndef FACILITY_LOCATION
-#define FACILITY_LOCATION
+#ifndef SRC_ENGINE_FACILITYLOCATION_H_
+#define SRC_ENGINE_FACILITYLOCATION_H_
+
 #include <vector>
+#include <iostream>
 #include "set.h"
 #include "SetFunctions.h"
 
-class FacilityLocation : public SetFunctions{
+class FacilityLocation : public SetFunctions {
  protected:
-    const std::vector<std::vector <float> >& kernel;  // The matrix s_{ij}_{i \in V, j \in V}
-    mutable std::vector<double> preCompute;  // Precomputed statistics of length 2*n. For a given set X, preCompute[i] = max_{j \in X} s_{ij} and preCompute[n+i] = 2max_{j \in X} s_{ij}, where 2max stands for the second max. This preComputed statistics is used in several algorithms for speed ups.
-    const int sizepreCompute;  // size of the precompute statistics (in this case, 2*n).
-    mutable Set preComputeSet;  // This points to the preComputed Set for which the statistics p_X is calculated.
+    const std::vector<std::vector <float> >& kernel;   // The matrix s_{ij}_{i \in V, j \in V}
+    mutable std::vector<double> preCompute;   // Precomputed statistics of length 2*n. For a given set X, preCompute[i] = max_{j \in X} s_{ij} and preCompute[n+i] = 2max_{j \in X} s_{ij}, where 2max stands for the second max. This preComputed statistics is used in several algorithms for speed ups.
+    const int sizepreCompute;   // size of the precompute statistics (in this case, 2*n).
+    mutable Set preComputeSet;   // This points to the preComputed Set for which the statistics p_X is calculated.
  public:
     // Functions
     FacilityLocation(int n, const std::vector<std::vector <float> >& kernel);
@@ -35,4 +37,4 @@ class FacilityLocation : public SetFunctions{
     void setpreCompute(const Set& ssett) const;
     void clearpreCompute() const;
 };
-#endif
+#endif  // SRC_ENGINE_FACILITYLOCATION_H_

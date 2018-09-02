@@ -7,16 +7,18 @@
  *
  */
 
-#ifndef DISPARITY_SUM
-#define DISPARITY_SUM
+#ifndef SRC_ENGINE_DISPARITYSUM_H_
+#define SRC_ENGINE_DISPARITYSUM_H_
 
 #include <vector>
+#include <algorithm>
+#include <iostream>
 #include "set.h"
 #include "SetFunctions.h"
 
 class DisparitySum : public SetFunctions {
  protected:
-    std::vector<std::vector <float> >& kernel;  // The matrix s_{ij}_{i \in V, j \in V} of similarity (the assumption is it is normalized between 0 and 1 -- max similarity is 1 and min similarity is 0)
+    std::vector<std::vector <float> >& kernel;   // The matrix s_{ij}_{i \in V, j \in V} of similarity (the assumption is it is normalized between 0 and 1 -- max similarity is 1 and min similarity is 0)
     mutable int sizepreCompute;
     mutable double preComputeVal;
     // Functions
@@ -40,4 +42,4 @@ class DisparitySum : public SetFunctions {
     void resetData(std::vector<int> Rset);
 };
 
-#endif
+#endif  // SRC_ENGINE_DISPARITYSUM_H_
