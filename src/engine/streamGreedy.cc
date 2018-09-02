@@ -5,6 +5,7 @@
  */
 
 #include "set.h"
+#include <assert.h>
 #include "SetFunctions.h"
 #include "streamGreedy.h"
 
