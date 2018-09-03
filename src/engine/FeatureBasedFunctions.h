@@ -4,24 +4,26 @@
     Author: Rishabh Iyer.
  *
  */
-#ifndef FEATUREBASED_FUNCTION
-#define FEATUREBASED_FUNCTION
+#ifndef SRC_ENGINE_FEATUREBASEDFUNCTIONS_H_
+#define SRC_ENGINE_FEATUREBASEDFUNCTIONS_H_
 
 #include <vector>
+#include <iostream>
+#include <cmath>
 #include "SetFunctions.h"
 #include "set.h"
 #include "SparseFeature.h"
 
 class FeatureBasedFunctions : public SetFunctions {
  protected:
-    const int nFeatures;  // Number of Features |F|
-    const int type;  // type: type of concave function, 1: sqrt over modular, 2: inverse function, 3: Log function, 4: Whatever else you want, Default: sqrt over modular
+    const int nFeatures;   // Number of Features |F|
+    const int type;   // type: type of concave function, 1: sqrt over modular, 2: inverse function, 3: Log function, 4: Whatever else you want, Default: sqrt over modular
     const double thresh;
-    const std::vector<struct SparseFeature>& feats;  // structure of the feature vectors for items. Size = n (groundset size)
-    const std::vector<double>& featureWeights;  // Feature Weights (w_f)
-    mutable std::vector<double> preCompute;  // Precomputed statistics. For a set X, p_X(f) = m_f(X).
-    mutable Set preComputeSet;  // This points to the preComputed Set for which the statistics p_X is calculated.
-    const int sizepreCompute;  // size of the precompute statistics (in this case, |F|).
+    const std::vector<struct SparseFeature>& feats;   // structure of the feature vectors for items. Size = n (groundset size)
+    const std::vector<double>& featureWeights;   // Feature Weights (w_f)
+    mutable std::vector<double> preCompute;   // Precomputed statistics. For a set X, p_X(f) = m_f(X).
+    mutable Set preComputeSet;   // This points to the preComputed Set for which the statistics p_X is calculated.
+    const int sizepreCompute;   // size of the precompute statistics (in this case, |F|).
     double concaveFunction(double K) const;
 
  public:
@@ -43,4 +45,4 @@ class FeatureBasedFunctions : public SetFunctions {
     void setpreCompute(const Set& sset) const;
     void clearpreCompute() const;
 };
-#endif
+#endif  // SRC_ENGINE_FEATUREBASEDFUNCTIONS_H_

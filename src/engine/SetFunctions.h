@@ -7,21 +7,22 @@
     Author: Rishabh Iyer
  *
  */
-#ifndef SET_FUNCTION_h
-#define SET_FUNCTION_h
+#ifndef SRC_ENGINE_SETFUNCTIONS_H_
+#define SRC_ENGINE_SETFUNCTIONS_H_
 
-#include "set.h"
 #include <vector>
+#include "set.h"
 
 class SetFunctions {
     // protected:
  protected:
-    const int n;  // Ground set size.
+    const int n;   // Ground set size.
+
  public:
     // Constructors
     SetFunctions();
     SetFunctions(int n);
-    SetFunctions(const SetFunctions& f);  // copy constructor
+    SetFunctions(const SetFunctions& f);   // copy constructor
     virtual ~SetFunctions();
 
     virtual SetFunctions * clone() const = 0;
@@ -53,4 +54,5 @@ class SetFunctions {
     double operator()(const Set& set) const;
     double operator()(const Set& set, int item) const;
 };
-#endif
+
+#endif  // SRC_ENGINE_SETFUNCTIONS_H_

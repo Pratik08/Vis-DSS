@@ -5,23 +5,20 @@
     Author: Rishabh Iyer.
  *
  */
-#include <iostream>
-using namespace std;
-
 #include "FacilityLocation.h"
 
 FacilityLocation::FacilityLocation(int n, const std::vector<std::vector <float> >& kernel) : SetFunctions(n), kernel(kernel), sizepreCompute(2 * n) {
-    // cout << sizeof(FacilityLocation) << " " << sizeof(kernel) << endl;
-    preCompute.assign(sizepreCompute, 0);  // precomputed statistics for speeding up greedy
+    // std::cout << sizeof(FacilityLocation) << " " << sizeof(kernel) << endl;
+    preCompute.assign(sizepreCompute, 0);   // precomputed statistics for speeding up greedy
 }
 
 
 FacilityLocation::FacilityLocation(const FacilityLocation & f) : SetFunctions(f.n), kernel(f.kernel), sizepreCompute(f.sizepreCompute) {
     preCompute = f.preCompute;
     preComputeSet = f.preComputeSet;
-    // cout << preCompute.size() << endl;
-    // for (std::vector<double>::iterator it = preCompute.begin(); it != preCompute.end(); it++){
-    // cout << *it << endl;
+    // std::cout << preCompute.size() << endl;
+    // for (std::vector<double>::iterator it = preCompute.begin(); it != preCompute.end(); it++) {
+    // std::cout << *it << endl;
     // }
 }
 
@@ -40,11 +37,10 @@ FacilityLocation* FacilityLocation::clone() const {
 double FacilityLocation::eval(const Set& sset) const {
     double sum = 0;
     double maxvali;
-
     Set::const_iterator it;
     for (int i = 0; i < n; i++) {
         maxvali = 0;
-        for ( it = sset.begin(); it != sset.end(); ++it) {
+        for (it = sset.begin(); it != sset.end(); ++it) {
             if (kernel[i][*it] > maxvali) {
                 maxvali = kernel[i][*it];
             }
@@ -57,7 +53,6 @@ double FacilityLocation::eval(const Set& sset) const {
 
 double FacilityLocation::evalFast(const Set& sset) const {
     double sum = 0;
-
     for (int i = 0; i < n; i++) {
         sum += preCompute[i];
     }
@@ -67,14 +62,14 @@ double FacilityLocation::evalFast(const Set& sset) const {
 
 double FacilityLocation::evalGainsadd(const Set& sset, int item) const {
     if (sset.contains(item)) {
-        cout << "Error in using evalGainsadd: the provided item already belongs to the subset\n";
+        std::cout << "Error in using evalGainsadd: the provided item already belongs to the subset\n";
         return 0;
     }
     double gains = 0;
     Set::const_iterator it;
     for (int i = 0; i < n; i++) {
         double maxvali = 0;
-        for ( it = sset.begin(); it != sset.end(); ++it ) {
+        for (it = sset.begin(); it != sset.end(); ++it) {
             if (kernel[i][*it] > maxvali) {
                 maxvali = kernel[i][*it];
             }
@@ -89,7 +84,7 @@ double FacilityLocation::evalGainsadd(const Set& sset, int item) const {
 
 double FacilityLocation::evalGainsremove(const Set& sset, int item) const {
     if (!sset.contains(item)) {
-        cout << "Error in using evalGainsremove: the provided item does not belong to the subset\n";
+        std::cout << "Error in using evalGainsremove: the provided item does not belong to the subset\n";
         return 0;
     }
     double sum = 0;
@@ -100,12 +95,13 @@ double FacilityLocation::evalGainsremove(const Set& sset, int item) const {
     for (int i = 0; i < n; i++) {
         maxvali = 0;
         maxvald = 0;
-        for ( it = sset.begin(); it != sset.end(); ++it) {
+        for (it = sset.begin(); it != sset.end(); ++it) {
             if (kernel[i][*it] > maxvali) {
                 maxvali = kernel[i][*it];
             }
-            if ((*it != item) && (kernel[i][*it] > maxvald))
+            if ((*it != item) && (kernel[i][*it] > maxvald)) {
                 maxvald = kernel[i][*it];
+            }
         }
         sum += maxvali;
         sumd += maxvald;
@@ -117,10 +113,10 @@ double FacilityLocation::evalGainsremove(const Set& sset, int item) const {
 double FacilityLocation::evalGainsaddFast(const Set& sset, int item) const {
 // Fast evaluation of Adding gains using the precomputed statistics. This is used, for example, in the implementation of the forward greedy algorithm.
     double gains = 0;
-
     for (int i = 0; i < n; i++) {
-        if (preCompute[i] < kernel[item][i])
+        if (preCompute[i] < kernel[item][i]) {
             gains += (kernel[item][i] - preCompute[i]);
+        }
     }
     return gains;
 }
@@ -129,10 +125,10 @@ double FacilityLocation::evalGainsaddFast(const Set& sset, int item) const {
 double FacilityLocation::evalGainsremoveFast(const Set& sset, int item) const {
 // Fast evaluation of Removing gains using the precomputed statistics. This is used, for example, in the implementation of the reverse greedy algorithm.
     double gains = 0;
-
     for (int i = 0; i < n; i++) {
-        if (preCompute[i] == kernel[item][i])
+        if (preCompute[i] == kernel[item][i]) {
             gains += (preCompute[i] - preCompute[n + i]);
+        }
     }
     return gains;
 }
@@ -155,7 +151,7 @@ void FacilityLocation::updateStatisticsAdd(const Set& sset, int item) const {
 void FacilityLocation::updateStatisticsRemove(const Set& sset, int item) const {
 // Update statistics for algorithms sequentially removing elements (for example, the reverse greedy algorithm).
     for (int i = 0; i < n; i++) {
-        if ((kernel[i][item] == preCompute[i]) || (kernel[i][item] == preCompute[n + i])) {  // We obtained the largest or the second largest value, we need to recompute the statistics. Else, it remains the same.
+        if ((kernel[i][item] == preCompute[i]) || (kernel[i][item] == preCompute[n + i])) {   // We obtained the largest or the second largest value, we need to recompute the statistics. Else, it remains the same.
             preCompute[i] = 0; preCompute[n + i] = 0;
             Set::const_iterator it;
             for (it = sset.begin(); it != sset.end(); ++it) {
@@ -177,14 +173,16 @@ void FacilityLocation::updateStatisticsRemove(const Set& sset, int item) const {
 
 
 void FacilityLocation::clearpreCompute() const {
-    for (int i = 0; i < sizepreCompute; i++) preCompute[i] = 0; preComputeSet.clear();
+    for (int i = 0; i < sizepreCompute; i++) {
+        preCompute[i] = 0; preComputeSet.clear();
+    }
 }
 
 
 void FacilityLocation::setpreCompute(const Set& sset) const {
     clearpreCompute();
     Set::const_iterator it;
-    for ( it = sset.begin(); it != sset.end(); ++it) {
+    for (it = sset.begin(); it != sset.end(); ++it) {
         updateStatisticsAdd(sset, *it);
     }
     preComputeSet = sset;

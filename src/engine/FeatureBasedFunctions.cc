@@ -4,18 +4,15 @@
     Author: Rishabh Iyer.
  *
  */
-#include <iostream>
-#include <cmath>
-using namespace std;
-
 #include "FeatureBasedFunctions.h"
-FeatureBasedFunctions::FeatureBasedFunctions(int n, int type, vector<struct SparseFeature>& feats, vector<double>& featureWeights, double thresh) :
+
+FeatureBasedFunctions::FeatureBasedFunctions(int n, int type, std::vector<struct SparseFeature>& feats, std::vector<double>& featureWeights, double thresh) :
     SetFunctions(n), type(type), thresh(thresh), feats(feats), featureWeights(featureWeights), nFeatures(featureWeights.size()), sizepreCompute(featureWeights.size()) {
     for (std::vector<double>::const_iterator it = featureWeights.begin(); it != featureWeights.end(); it++) {
         if (*it < 0) {
-            cout << "********************************************************************" << endl;
-            cout << "Warning: the input feature weights has some entry being negative, please double check" << endl;
-            cout << "********************************************************************" << endl;
+            std::cout << "********************************************************************" << std::endl;
+            std::cout << "Warning: the input feature weights has some entry being negative, please double check" << std::endl;
+            std::cout << "********************************************************************" << std::endl;
         }
     }
     preCompute.resize(sizepreCompute);
@@ -26,17 +23,17 @@ FeatureBasedFunctions::FeatureBasedFunctions(const FeatureBasedFunctions & f) :
     SetFunctions(f.n), feats(f.feats), featureWeights(f.featureWeights), nFeatures(f.nFeatures), type(f.type), thresh(f.thresh), sizepreCompute(f.sizepreCompute) {
     preCompute = f.preCompute;
     preComputeSet = f.preComputeSet;
-    // cout << "Called copy constructor " << endl;
+    // std::cout << "Called copy constructor " << std::endl;
 }
 
 
 FeatureBasedFunctions::~FeatureBasedFunctions() {
-    // cout << "Call destructor of feature based function!" << endl;
+    // std::cout << "Call destructor of feature based function!" << std::endl;
 }
 
 
 FeatureBasedFunctions* FeatureBasedFunctions::clone() const {
-    // cout << "called feature based function clone" << endl;
+    // std::cout << "called feature based function clone" << std::endl;
     return new FeatureBasedFunctions(*this);
 }
 
@@ -61,16 +58,16 @@ double FeatureBasedFunctions::eval(const Set& set) const {
     // Evaluation of function valuation.
     double sum = 0;
 
-    vector<double> featurescoresset(nFeatures, 0);
+    std::vector<double> featurescoresset(nFeatures, 0);
     Set::const_iterator it;
-    for ( it = set.begin(); it != set.end(); ++it ) {
+    for (it = set.begin(); it != set.end(); ++it) {
         for (int j = 0; j < feats[*it].numUniqueFeatures; j++) {
             featurescoresset[feats[*it].featureIndex[j]] += feats[*it].featureVec[j];
         }
     }
     for (int ii = 0; ii < nFeatures; ii++) {
-        // cout << this->featureWeights[ii] << endl;
-        // cout << concaveFunction(featurescoresset[ii]) << endl;
+        // std::cout << this->featureWeights[ii] << std::endl;
+        // std::cout << concaveFunction(featurescoresset[ii]) << std::endl;
         sum = sum + featureWeights[ii] * concaveFunction(featurescoresset[ii]);
     }
     return sum;
@@ -80,7 +77,6 @@ double FeatureBasedFunctions::eval(const Set& set) const {
 double FeatureBasedFunctions::evalFast(const Set& set) const {
     // Evaluation of function valuation.
     double sum = 0;
-
     for (int ii = 0; ii < nFeatures; ii++) {
         sum = sum + featureWeights[ii] * concaveFunction(preCompute[ii]);
     }
@@ -91,15 +87,15 @@ double FeatureBasedFunctions::evalFast(const Set& set) const {
 double FeatureBasedFunctions::evalGainsadd(const Set& set, int item) const {
     // Evaluation of gains.
     if (set.contains(item)) {
-        cout << "Error in using evalGainsadd: the provided item already belongs to the subset\n";
+        std::cout << "Error in using evalGainsadd: the provided item already belongs to the subset\n";
         return 0;
     }
     double gains = 0;
     double temp;
     double diff;
-    vector<double> featurescoresset(nFeatures, 0);
+    std::vector<double> featurescoresset(nFeatures, 0);
     Set::const_iterator it;
-    for ( it = set.begin(); it != set.end(); ++it ) {
+    for (it = set.begin(); it != set.end(); ++it) {
         for (int j = 0; j < feats[*it].numUniqueFeatures; j++) {
             featurescoresset[feats[*it].featureIndex[j]] += feats[*it].featureVec[j];
         }
@@ -116,15 +112,15 @@ double FeatureBasedFunctions::evalGainsadd(const Set& set, int item) const {
 double FeatureBasedFunctions::evalGainsremove(const Set& set, int item) const {
     // Evaluation of function valuation.
     if (!set.contains(item)) {
-        cout << "Error in using evalGainsremove: the provided item does not belong to the subset\n";
+        std::cout << "Error in using evalGainsremove: the provided item does not belong to the subset\n";
         return 0;
     }
     double sum = 0;
     double sumd = 0;
-    vector<double> featurescoresset(nFeatures, 0);
-    vector<double> featurescoressetd(nFeatures, 0);
+    std::vector<double> featurescoresset(nFeatures, 0);
+    std::vector<double> featurescoressetd(nFeatures, 0);
     Set::const_iterator it;
-    for ( it = set.begin(); it != set.end(); ++it ) {
+    for (it = set.begin(); it != set.end(); ++it) {
         for (int j = 0; j < feats[*it].numUniqueFeatures; j++) {
             featurescoresset[feats[*it].featureIndex[j]] += feats[*it].featureVec[j];
             if (*it != item) {
@@ -146,8 +142,7 @@ double FeatureBasedFunctions::evalGainsaddFast(const Set& set, int item) const {
     double temp;
     double diff;
     int num_wrds = feats[item].numUniqueFeatures;
-
-    gains = 0;;
+    gains = 0;
     for (int i = 0; i < num_wrds; i++) {
         temp = preCompute[feats[item].featureIndex[i]];
         diff = concaveFunction(temp + feats[item].featureVec[i]) - concaveFunction(temp);
@@ -163,8 +158,7 @@ double FeatureBasedFunctions::evalGainsremoveFast(const Set& set, int item) cons
     double temp;
     double diff;
     int num_wrds = feats[item].numUniqueFeatures;
-
-    gains = 0;;
+    gains = 0;
     for (int i = 0; i < num_wrds; i++) {
         temp = preCompute[feats[item].featureIndex[i]] - feats[item].featureVec[i];
         diff = concaveFunction(preCompute[feats[item].featureIndex[i]]) - concaveFunction(temp);
@@ -193,14 +187,17 @@ void FeatureBasedFunctions::updateStatisticsRemove(const Set& sset, int item) co
 
 
 void FeatureBasedFunctions::clearpreCompute() const {
-    for (int i = 0; i < sizepreCompute; i++) preCompute[i] = 0; preComputeSet.clear();
+    for (int i = 0; i < sizepreCompute; i++) {
+        preCompute[i] = 0;
+    }
+    preComputeSet.clear();
 }
 
 
 void FeatureBasedFunctions::setpreCompute(const Set& set) const {
     clearpreCompute();
     Set::const_iterator it;
-    for ( it = set.begin(); it != set.end(); ++it) {
+    for (it = set.begin(); it != set.end(); ++it) {
         updateStatisticsAdd(set, *it);
     }
     preComputeSet = set;

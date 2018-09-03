@@ -4,10 +4,10 @@
     Author: Rishabh Iyer
  *
  */
-#include "SetFunctions.h"
+
 #include <iostream>
+#include "SetFunctions.h"
 #include "set.h"
-using namespace std;
 
 SetFunctions::SetFunctions() : n(0) {
 }
@@ -32,30 +32,28 @@ int SetFunctions::size() const {
 
 double SetFunctions::evalGainsadd(const Set& set, int item) const {
     // std::cout << "Call set function gain add " << std::endl;
-    /*HashSet vset(set.size()+1); // there is possibly a bug with the VectorSet's insert method
+    /*HashSet vset(set.size()+1);  // there is possibly a bug with the VectorSet's insert method
        Set::const_iterator it(set);
-       for (it = set.begin(); it != set.end(); ++it){
-        if (*it == item){
+       for (it = set.begin(); it != set.end(); ++it) {
+        if (*it == item) {
             error("item already in the set to be added\n");
         }
         vset.insert(*it);
        }*/
     Set aset(set);
-
     aset.insert(item);
-    return eval(aset) - eval(set);
+    return (eval(aset) - eval(set));
 }
 
 
 double SetFunctions::evalGainsremove(const Set& set, int item) const {
-    Set rset;  // probably, we need to implement the copy constructor for Set
-
+    Set rset;   // probably, we need to implement the copy constructor for Set
     Set::const_iterator it;
     for (it = set.begin(); it != set.end(); ++it) {
         rset.insert(*it);
     }
     rset.remove(item);
-    return eval(set) - eval(rset);
+    return (eval(set) - eval(rset));
 }
 
 

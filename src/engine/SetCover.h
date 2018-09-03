@@ -4,16 +4,18 @@
  *
  */
 
-#ifndef SET_COVER
-#define SET_COVER
+#ifndef SRC_ENGINE_SETCOVER_H_
+#define SRC_ENGINE_SETCOVER_H_
+
 #include <vector>
+#include <iostream>
 #include "set.h"
 #include "SetFunctions.h"
 
 class SetCover : public SetFunctions {
  protected:
-    const std::vector<Set> & coverSet;  // The sets U_i, i \in V
-    mutable Set preCompute;  // Precomputed statistics \cup_{i \in X} U_i
+    const std::vector<Set> & coverSet;   // The sets U_i, i \in V
+    mutable Set preCompute;   // Precomputed statistics \cup_{i \in X} U_i
  public:
     // Functions
     SetCover(int n, const std::vector<Set> & coverSet);
@@ -31,4 +33,5 @@ class SetCover : public SetFunctions {
     void setpreCompute(const Set& ssett) const;
     void clearpreCompute() const;
 };
-#endif
+
+#endif  // SRC_ENGINE_SETCOVER_H_

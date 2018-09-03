@@ -3,8 +3,6 @@
     Author: Rishabh Iyer.
  *
  */
-#include <iostream>
-using namespace std;
 
 #include "ProbabilisticSetCover.h"
 
@@ -30,12 +28,11 @@ ProbabilisticSetCover* ProbabilisticSetCover::clone() const {
 
 double ProbabilisticSetCover::eval(const Set& sset) const {
     Set cset = Set();
-
     Set::const_iterator it;
     double sum = 0;
     for (int i = 0; i < nConcepts; i++) {
         double prod = 1;
-        for ( it = sset.begin(); it != sset.end(); ++it) {
+        for (it = sset.begin(); it != sset.end(); ++it) {
             prod = prod * (1 - p[*it][i]);
         }
         sum = sum + (1 - prod);
@@ -46,7 +43,6 @@ double ProbabilisticSetCover::eval(const Set& sset) const {
 
 double ProbabilisticSetCover::evalFast(const Set& sset) const {
     double sum = 0;
-
     for (int i = 0; i < nConcepts; i++) {
         sum = sum + (1 - preCompute[i]);
     }
@@ -56,30 +52,29 @@ double ProbabilisticSetCover::evalFast(const Set& sset) const {
 
 double ProbabilisticSetCover::evalGainsadd(const Set& sset, int item) const {
     if (sset.contains(item)) {
-        cout << "Error in using evalGainsadd: the provided item already belongs to the subset\n";
+        std::cout << "Error in using evalGainsadd: the provided item already belongs to the subset\n";
         return 0;
     }
     Set aset = sset;
     aset.insert(item);
-    return eval(aset) - eval(sset);
+    return (eval(aset) - eval(sset));
 }
 
 
 double ProbabilisticSetCover::evalGainsremove(const Set& sset, int item) const {
     if (!sset.contains(item)) {
-        cout << "Error in using evalGainsremove: the provided item does not belong to the subset\n";
+        std::cout << "Error in using evalGainsremove: the provided item does not belong to the subset\n";
         return 0;
     }
     Set rset = sset;
     rset.remove(item);
-    return eval(sset) - eval(rset);
+    return (eval(sset) - eval(rset));
 }
 
 
 double ProbabilisticSetCover::evalGainsaddFast(const Set& sset, int item) const {
 // Fast evaluation of Adding gains using the precomputed statistics. This is used, for example, in the implementation of the forward greedy algorithm.
     double gains = 0;
-
     for (int i = 0; i < nConcepts; i++) {
         gains = gains + (preCompute[i] - preCompute[i] * (1 - p[item][i]));
     }
@@ -90,7 +85,6 @@ double ProbabilisticSetCover::evalGainsaddFast(const Set& sset, int item) const 
 double ProbabilisticSetCover::evalGainsremoveFast(const Set& sset, int item) const {
 // Fast evaluation of Removing gains using the precomputed statistics. This is used, for example, in the implementation of the reverse greedy algorithm.
     double gains = 0;
-
     for (int i = 0; i < nConcepts; i++) {
         gains = gains + (preCompute[i] / (1 - p[item][i]) - preCompute[i]);
     }
@@ -124,7 +118,7 @@ void ProbabilisticSetCover::setpreCompute(const Set& sset) const {
     Set::const_iterator it;
     for (int i = 0; i < nConcepts; i++) {
         preCompute[i] = 1;
-        for ( it = sset.begin(); it != sset.end(); ++it) {
+        for (it = sset.begin(); it != sset.end(); ++it) {
             preCompute[i] = preCompute[i] * (1 - p[*it][i]);
         }
     }

@@ -1,14 +1,14 @@
-#ifndef MMR_H
-#define MMR_H
+#ifndef SRC_ENGINE_MMR_H_
+#define SRC_ENGINE_MMR_H_
 
+#include <vector>
 #include "set.h"
 #include "SetFunctions.h"
-#include <vector>
 
 class MMR : public SetFunctions {
-    public:
+ public:
     int n;
-    std::vector<std::vector <float> >& kernel; // The matrix s_{ij}_{i \in V, j \in V} of similarity (the assumption is it is normalized between 0 and 1 -- max similarity is 1 and min similarity is 0)
+    std::vector<std::vector <float> >& kernel;  // The matrix s_{ij}_{i \in V, j \in V} of similarity (the assumption is it is normalized between 0 and 1 -- max similarity is 1 and min similarity is 0)
     mutable double preComputeVal;
     // Functions
     MMR(int n, std::vector<std::vector <float> >& kernel);
@@ -30,4 +30,4 @@ class MMR : public SetFunctions {
     int size() const;
 };
 
-#endif // MMR_H
+#endif  // SRC_ENGINE_MMR_H_
