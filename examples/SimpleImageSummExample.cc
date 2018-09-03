@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
         Arg::usage(); exit(-1);
     }
     DIR *dir;
-    std::string dirName = string(directory);
+    std::string dirName = directory;
     std::string imgName;
     struct dirent *ent;
     std::vector<cv::Mat> ImageCollection = std::vector<cv::Mat>();

@@ -7,9 +7,9 @@
 #include "EntitySimVideoSummarizer.h"
 
 static std::string IntToString(int a) {
-    stringstream ss;
+    std::stringstream ss;
     ss << a;
-    string str = ss.str();
+    std::string str = ss.str();
     return str;
 }
 
@@ -190,7 +190,7 @@ void EntitySimVideoSummarizer::summarizeStream(double epsilon) {
     if (summaryFunction == 0) {
         DisparityMin dM(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -203,7 +203,7 @@ void EntitySimVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -216,7 +216,7 @@ void EntitySimVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -229,7 +229,7 @@ void EntitySimVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -242,7 +242,7 @@ void EntitySimVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -294,7 +294,7 @@ void EntitySimVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave,
     int summary_x = ceil(sqrt(summarySet.size()));
     int summary_y = ceil(static_cast<double>(summarySet.size() / summary_x));
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
-    for (set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
+    for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         summaryimages.push_back(entityVector[*it]);
     }
     cv::Mat collagesummary = cv::Mat::zeros(cv::Size(image_size * summary_x, image_size * summary_y), CV_8UC3);
