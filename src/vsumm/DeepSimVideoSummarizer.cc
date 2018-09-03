@@ -7,9 +7,9 @@
 #include "DeepSimVideoSummarizer.h"
 
 static std::string IntToString(int a) {
-    stringstream ss;
+    std::stringstream ss;
     ss << a;
-    string str = ss.str();
+    std::string str = ss.str();
     return str;
 }
 
@@ -191,7 +191,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
     if (summaryFunction == 0) {
         DisparityMin dM(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -204,7 +204,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -217,7 +217,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -230,7 +230,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -243,7 +243,7 @@ void DeepSimVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -292,8 +292,9 @@ void DeepSimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
     cv::Mat frame;
     capture.set(CV_CAP_PROP_POS_FRAMES, 0);
     cv::VideoWriter videoWriter;
-    if (videoFileSave != "")
+    if (videoFileSave != "") {
         videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+    }
     for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[*it] * frameRate);
         for (int i = segmentStartTimes[*it]; i < segmentStartTimes[*it + 1]; i++) {

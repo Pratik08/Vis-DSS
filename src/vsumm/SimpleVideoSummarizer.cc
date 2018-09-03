@@ -7,9 +7,9 @@
 #include "SimpleVideoSummarizer.h"
 
 std::string IntToString(int a) {
-    stringstream ss;
+    std::stringstream ss;
     ss << a;
-    string str = ss.str();
+    std::string str = ss.str();
     return str;
 }
 double SmallShotPenalty = 10;
@@ -149,7 +149,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     if (summaryFunction == 0) {
         DisparityMin dM(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -162,7 +162,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -175,7 +175,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -188,7 +188,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -201,7 +201,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }

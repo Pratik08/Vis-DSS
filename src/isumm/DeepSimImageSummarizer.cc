@@ -7,9 +7,9 @@
 #include "DeepSimImageSummarizer.h"
 
 static std::string IntToString(int a) {
-    stringstream ss;
+    std::stringstream ss;
     ss << a;
-    string str = ss.str();
+    std::string str = ss.str();
     return str;
 }
 
@@ -144,7 +144,7 @@ void DeepSimImageSummarizer::summarizeBudget(int budget) {
             summarySet.insert(*it);
         }
     }
-    for (set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
+    for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         std::cout << *it << "\n" << std::flush;
     }
     std::cout << "Summarization is done with n = " << n << " and budget = " << budget << "\n" << std::flush;
@@ -155,9 +155,10 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon) {
     if (summaryFunction == 0) {
         DisparityMin dM(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        std::vector<int> order(n, 1);
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(dM, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -167,9 +168,10 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        std::vector<int> order(n, 1);
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(m, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -179,9 +181,10 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        std::vector<int> order(n, 1);
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(fL, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -191,9 +194,10 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
-        vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        std::vector<int> order(n, 1);
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(gC, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -203,9 +207,10 @@ void DeepSimImageSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
-        vector<int> order(n, 1);
-        for (int i = 0; i < n; i++)
+        std::vector<int> order(n, 1);
+        for (int i = 0; i < n; i++) {
             order[i] = i;
+        }
         streamGreedy(sC, epsilon, optSet, order);
         optSet.insert(n - 1);
         summarySet = std::set<int>();
@@ -243,23 +248,24 @@ void DeepSimImageSummarizer::summarizeCover(double coverage) {
             summarySet.insert(*it);
         }
     }
-    // cout << "Done with summarization\n" << flush;
 }
 
 void DeepSimImageSummarizer::playAndSaveSummaryVideo(char* videoFileSave, int frameSize) {
     cv::VideoWriter videoWriter;
-    if (videoFileSave != "")
-        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), 1,
-                                      cv::Size(frameSize, frameSize));
+    if (videoFileSave != "") {
+        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), 1, cv::Size(frameSize, frameSize));
+    }
     for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         cv::Mat frame = ImageCollection[*it];
         cv::Mat frameSq = GetSquareImage(frame, frameSize);
         cv::putText(frame, "Frame Number: " + IntToString(*it), cvPoint(30, 30),
                     cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
-        if (frameSq.data)
-            cv::imshow("Sumamry Video", frameSq);
-        if (videoFileSave != "")
+        if (frameSq.data) {
+            cv::imshow("Summary Video", frameSq);
+        }
+        if (videoFileSave != "") {
             videoWriter.write(frameSq);
+        }
         // Press  ESC on keyboard to exit
         char c = static_cast<char>(cv::waitKey(500));
         if (c == 27) {
@@ -272,7 +278,7 @@ void DeepSimImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, i
     int summary_x = ceil(sqrt(summarySet.size()));
     int summary_y = ceil(static_cast<double>(summarySet.size() / summary_x));
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
-    for (set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
+    for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         summaryimages.push_back(ImageCollection[*it]);
     }
     std::cout << summaryimages.size() << "\n";
