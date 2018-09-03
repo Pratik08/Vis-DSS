@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project("IVSUMM")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O4 -std=c++0x")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++0x")
 
 if (CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -fopenmp")
@@ -32,8 +32,8 @@ add_library(summengine
 )
 
 ######################################### Simple Video Summarizer Examples ########################################
-include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/ /Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/vsumm/)
-link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/)
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/ /Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/vsumm/)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/)
 add_executable(SimpleVideoSummExample src/utils/ShotDetector.cc src/vsumm/SimpleVideoSummarizer.cc src/utils/ColorUtils.cc src/utils/ImageUtils.cc examples/SimpleVideoSummExample.cc)
 target_link_libraries(SimpleVideoSummExample
     summengine -lopencv_imgproc
@@ -48,8 +48,8 @@ target_link_libraries(SimpleVideoSummExample
 )
 
 ######################################### Simple Image Summarizer Examples ########################################
-include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/ /Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/isumm/)
-link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/)
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/ /Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/isumm/)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/)
 add_executable(SimpleImageSummExample src/utils/ShotDetector.cc src/isumm/SimpleImageSummarizer.cc src/utils/ColorUtils.cc src/utils/ImageUtils.cc examples/SimpleImageSummExample.cc)
 target_link_libraries(SimpleImageSummExample
     summengine -lopencv_imgproc
@@ -64,11 +64,11 @@ target_link_libraries(SimpleImageSummExample
 )
 
 ######################################### Deep Video Summarizer Example ########################################
-include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/
-/Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/vsumm/
-/Users/rkiyer/Desktop/caffe/include /usr/local/Cellar/openblas/0.3.1/include /usr/local/Cellar/glog/0.3.5_3/include)
-link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/ /Users/rkiyer/Desktop/caffe/build/lib
-/usr/local/Cellar/openblas/0.3.1/lib /usr/local/Cellar/glog/0.3.5_3/lib)
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/
+/Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/vsumm/
+/Users/pratik/AITOE/aisaacv2_deps/caffe/include /usr/local/Cellar/openblas/0.2.20_1/include /usr/local/Cellar/glog/0.3.5_3/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/ /Users/pratik/AITOE/aisaacv2_deps/caffe/build/lib
+/usr/local/Cellar/openblas/0.2.20_1/lib /usr/local/Cellar/glog/0.3.5_3/lib)
 add_executable(DeepVideoSummExample examples/DeepVideoSummExample.cc src/utils/ShotDetector.cc src/utils/ColorUtils.cc
     src/utils/caffeClassifier.cc src/vsumm/DeepSimVideoSummarizer.cc src/utils/ImageUtils.cc src/vsumm/DeepCoverVideoSummarizer.cc)
 set_source_files_properties(examples/DeepVideoSummExample.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
@@ -88,11 +88,11 @@ target_link_libraries(DeepVideoSummExample
 )
 
 ######################################### Deep Image Summarizer Example ########################################
-include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/
-/Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/isumm/
-/Users/rkiyer/Desktop/caffe/include /usr/local/Cellar/openblas/0.3.1/include /usr/local/Cellar/glog/0.3.5_3/include)
-link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/ /Users/rkiyer/Desktop/caffe/build/lib
-/usr/local/Cellar/openblas/0.3.1/lib /usr/local/Cellar/glog/0.3.5_3/lib)
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/
+/Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/isumm/
+/Users/pratik/AITOE/aisaacv2_deps/caffe/include /usr/local/Cellar/openblas/0.2.20_1/include /usr/local/Cellar/glog/0.3.5_3/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/ /Users/pratik/AITOE/aisaacv2_deps/caffe/build/lib
+/usr/local/Cellar/openblas/0.2.20_1/lib /usr/local/Cellar/glog/0.3.5_3/lib)
 add_executable(DeepImageSummExample examples/DeepImageSummExample.cc src/utils/ShotDetector.cc src/utils/ColorUtils.cc
     src/utils/caffeClassifier.cc src/isumm/DeepSimImageSummarizer.cc src/utils/ImageUtils.cc src/isumm/DeepCoverImageSummarizer.cc)
 set_source_files_properties(examples/DeepImageSummExample.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
@@ -111,12 +111,34 @@ target_link_libraries(DeepImageSummExample
     -lopencv_dnn
 )
 
+######################################### Query Video Summarizer Example ########################################
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/
+/Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/vsumm/
+/Users/pratik/AITOE/aisaacv2_deps/caffe/include /usr/local/Cellar/openblas/0.2.20_1/include /usr/local/Cellar/glog/0.3.5_3/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/ /Users/pratik/AITOE/aisaacv2_deps/caffe/build/lib
+/usr/local/Cellar/openblas/0.2.20_1/lib /usr/local/Cellar/glog/0.3.5_3/lib)
+add_executable(QueryVideoSummExample examples/QueryVideoSummExample.cc src/utils/ShotDetector.cc src/utils/ColorUtils.cc
+    src/utils/caffeClassifier.cc src/vsumm/QuerySimVideoSummarizer.cc src/utils/ImageUtils.cc)
+set_source_files_properties(examples/QueryVideoSummExample.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/utils/caffeClassifier.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/vsumm/QuerySimVideoSummarizer.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+target_link_libraries(QueryVideoSummExample
+    summengine -lopencv_imgproc -lcaffe -lglog
+    -lopencv_core
+    -lopencv_highgui
+    -lopencv_videoio
+    -lopencv_imgcodecs
+    -lopencv_bgsegm
+    -lopencv_video
+    -lopencv_objdetect
+)
+
 ######################################### Entity Face Video Summarizer Example ########################################
-include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/
-/Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/vsumm/
-/Users/rkiyer/Desktop/caffe/include /usr/local/Cellar/openblas/0.3.1/include /usr/local/Cellar/glog/0.3.5_3/include)
-link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/ /Users/rkiyer/Desktop/caffe/build/lib
-/usr/local/Cellar/openblas/0.3.1/lib /usr/local/Cellar/glog/0.3.5_3/lib /usr/local/lib/X11/)
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/
+/Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/vsumm/
+/Users/pratik/AITOE/aisaacv2_deps/caffe/include /usr/local/Cellar/openblas/0.2.20_1/include /usr/local/Cellar/glog/0.3.5_3/include /opt/X11/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/ /Users/pratik/AITOE/aisaacv2_deps/caffe/build/lib
+/usr/local/Cellar/openblas/0.2.20_1/lib /usr/local/Cellar/glog/0.3.5_3/lib /opt/X11/lib)
 add_executable(EntityFaceSummExample examples/EntityFaceSummExample.cc src/utils/caffeClassifier.cc src/utils/dnnClassifier.cc
 src/utils/dlibClassifier.cc src/vsumm/EntitySimVideoSummarizer.cc src/utils/ImageUtils.cc src/utils/dlib/all/source.cpp)
 set_source_files_properties(examples/EntityFaceSummExample.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
@@ -135,11 +157,11 @@ target_link_libraries(EntityFaceSummExample
 )
 
 ######################################### Entity Object Video Summarizer Example ########################################
-include_directories(/usr/local/Cellar/3.4.1_6/include/ /usr/local/Cellar/3.4.1_6/include/opencv/
-/Users/rkiyer/Desktop/ivsumm/src/engine/ /Users/rkiyer/Desktop/ivsumm/src/utils/ /Users/rkiyer/Desktop/ivsumm/src/vsumm/
-/Users/rkiyer/Desktop/caffe/include /usr/local/Cellar/openblas/0.3.1/include /usr/local/Cellar/glog/0.3.5_3/include)
-link_directories(/usr/local/Cellar/opencv/3.4.1_6/lib/ /Users/rkiyer/Desktop/caffe/build/lib
-/usr/local/Cellar/openblas/0.3.1/lib /usr/local/Cellar/glog/0.3.5_3/lib /usr/local/lib/X11/)
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/
+/Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/vsumm/
+/Users/pratik/AITOE/aisaacv2_deps/caffe/include /usr/local/Cellar/openblas/0.2.20_1/include /usr/local/Cellar/glog/0.3.5_3/include /opt/X11/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/ /Users/pratik/AITOE/aisaacv2_deps/caffe/build/lib
+/usr/local/Cellar/openblas/0.2.20_1/lib /usr/local/Cellar/glog/0.3.5_3/lib /opt/X11/lib)
 add_executable(EntityObjectSummExample examples/EntityObjectSummExample.cc src/utils/caffeClassifier.cc src/utils/dnnClassifier.cc
 src/utils/dlibClassifier.cc src/vsumm/EntitySimVideoSummarizer.cc src/utils/ImageUtils.cc src/utils/dlib/all/source.cpp)
 set_source_files_properties(examples/EntityObjectSummExample.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
