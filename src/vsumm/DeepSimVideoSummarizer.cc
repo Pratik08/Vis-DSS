@@ -24,9 +24,7 @@ float DotProduct(std::vector<float> vec1, std::vector<float> vec2) {
     for (int i = 0; i < n; i++) {
         norm1 += vec1[i] * vec1[i];
         norm2 += vec2[i] * vec2[i];
-        for (int j = 0; j < n; j++) {
-            sim += vec1[i] * vec2[j];
-        }
+        sim += vec1[i] * vec2[i];
     }
     return sim / (sqrt(norm1) * sqrt(norm2));
 }
@@ -74,12 +72,9 @@ void DeepSimVideoSummarizer::extractFeatures() {
     if (!capture.isOpened()) {
         std::cout << "Error when reading steam" << "\n";
     }
-    int frame_count = 0;
-    int samplingRate = 1;
     costList = std::vector<double>();
     for (int i = 0; i < segmentStartTimes.size() - 1; i++) {
         if (segmentStartTimes[i + 1] - segmentStartTimes[i] == 1) {
-            cv::MatND hist;
             capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[i] * frameRate);
             capture >> frame;
             std::vector<float> feat = cc.Predict(frame, featureLayer);
@@ -95,7 +90,6 @@ void DeepSimVideoSummarizer::extractFeatures() {
                 capture >> frame;
                 CurrVideo.push_back(frame.clone());
             }
-            cv::MatND hist;
             std::vector<float> feat = cc.Predict(CurrVideo, featureLayer);
             classifierFeatures.push_back(feat);
             costList.push_back(CurrVideo.size());
@@ -118,7 +112,6 @@ void DeepSimVideoSummarizer::extractFeatures() {
                 break;
         }
     }
-    capture.release();
     n = classifierFeatures.size();
     capture.release();
 }
