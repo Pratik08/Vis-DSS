@@ -23,9 +23,7 @@ float DotProduct(std::vector<float> vec1, std::vector<float> vec2) {
     for (int i = 0; i < n; i++) {
         norm1 += vec1[i] * vec1[i];
         norm2 += vec2[i] * vec2[i];
-        for (int j = 0; j < n; j++) {
-            sim += vec1[i] * vec2[j];
-        }
+        sim += vec1[i] * vec2[i];
     }
     return sim / (sqrt(norm1) * sqrt(norm2));
 }
@@ -50,55 +48,103 @@ float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2) {
     return exp(-diff / 2);
 }
 
-QuerySimVideoSummarizer::QuerySimVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer, int summaryFunction, bool debugMode) : videoFile(videoFile), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), debugMode(debugMode) {
+QuerySimVideoSummarizer::QuerySimVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer, int summaryFunction, int segmentType, int snippetLength, bool debugMode) : videoFile(videoFile), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), segmentType(segmentType), snippetLength(snippetLength), debugMode(debugMode) {
     cv::VideoCapture capture(videoFile);
     frameRate = static_cast<int>(capture.get(CV_CAP_PROP_FPS));
     videoLength = capture.get(CV_CAP_PROP_FRAME_COUNT) / frameRate;
+    std::cout << "The video Length is " << videoLength << " and the frameRate is " << frameRate << "\n";
+    if (segmentType == 0) {
+        for (int i = 0; i < videoLength; i += snippetLength) {
+            segmentStartTimes.push_back(i);
+        }
+    } else {
+        segmentStartTimes = shotDetector(capture);
+    }
     capture.release();
-    featMode = 0;
 }
 
 void QuerySimVideoSummarizer::extractFeatures() {
-    classifiedImageVector = std::vector<cv::Mat>();
-    classifiedFeatureVector = std::vector<std::pair<std::string, std::vector<float> > >();
+    classifiedLabel = std::vector<std::set<std::string> >();
+    classifiedFeatureVector = std::vector<std::pair<double, std::vector<float> > >();  // pair of cost and feature
+    std::vector<cv::Mat> CurrVideo = std::vector<cv::Mat>();
+    std::vector<std::pair<std::string, float> > framePredictions = std::vector<std::pair<std::string, float> >();
+    std::vector<float> frameFeature = std::vector<float>();
+    std::set<std::string> frameLabel = std::set<std::string>();
+
     cv::VideoCapture capture(videoFile);
     frameRate = static_cast<int>(capture.get(CV_CAP_PROP_FPS));
     cv::Mat frame;
-    int count = 0;
-    if ( !capture.isOpened() ) {
-        throw "Error when reading video file\n";
+    if (!capture.isOpened()) {
+        std::cout << "Error when reading video file" << std::endl;
     }
-    while (1) {
-        capture >> frame;
-        if (frame.empty()) {
-            break;
-        }
-        if (count % frameRate == 0) {
-            std::vector<std::pair<std::string, float> > framePredictions = std::vector<std::pair<std::string, float> >();
-            std::vector<float> frameFeature = std::vector<float> ();
-            framePredictions = cc.Classify(frame);
+    for (int i = 0; i < segmentStartTimes.size() - 1; i++) {
+        if (segmentStartTimes[i + 1] - segmentStartTimes[i] == 1) {
+            capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[i] * frameRate);
+            capture >> frame;
+            framePredictions = cc.Classify(frame, 1);
+            for (int k = 0; k < framePredictions.size(); k++) {
+                frameLabel.insert(framePredictions[k].first);
+            }
+            classifiedLabel.push_back(frameLabel);
             frameFeature = cc.Predict(frame, featureLayer);
-            classifiedImageVector.push_back(frame);
-            classifiedFeatureVector.push_back(std::make_pair(framePredictions[0].first, frameFeature));
-            if (debugMode) {
-                cv::imshow("Debug", frame);
-                cv::waitKey(300);  // key press to close window
+            if (segmentType == 1) {
+                classifiedFeatureVector.push_back(std::make_pair(SmallShotPenalty, frameFeature));
+            } else {
+                classifiedFeatureVector.push_back(std::make_pair(1, frameFeature));  // default segment cost of 1
+            }
+        } else {
+            for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
+                capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
+                capture >> frame;
+                framePredictions = cc.Classify(frame, 1);
+                for (int k = 0; k < framePredictions.size(); k++) {
+                    frameLabel.insert(framePredictions[k].first);
+                }
+                CurrVideo.push_back(frame.clone());
+            }
+            frameFeature = cc.Predict(CurrVideo, featureLayer);
+            classifiedLabel.push_back(frameLabel);
+            classifiedFeatureVector.push_back(std::make_pair(CurrVideo.size(), frameFeature));
+            CurrVideo.clear();
+        }
+        frameLabel.clear();
+        frameFeature.clear();
+        framePredictions.clear();
+        if (debugMode) {
+            std::vector<std::pair<std::string, float> > res = cc.Classify(frame);
+            std::string labels = "";
+            for (int i = 0; i < res.size() - 1; i++) {
+                labels = labels + res[i].first + ", ";
+            }
+            labels = labels + res[res.size() - 1].first;
+            cv::putText(frame, labels, cvPoint(30, 30), cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
+            if (frame.data) {
+                cv::imshow("Debug Video", frame);
+            }
+            // Press  ESC on keyboard to exit
+            char c = static_cast<char>(cv::waitKey(25));
+            if (c == 27) {
+                break;
             }
         }
-        count++;
     }
 }
 
 void QuerySimVideoSummarizer::processQuery(std::string queryInput) {
-    queryVector = std::vector<cv::Mat>();
     queryFeatures = std::vector<std::vector<float> >();
-    for (int i = 0; i < classifiedFeatureVector.size(); i++) {
-        if (classifiedFeatureVector[i].first == queryInput) {
-            queryVector.push_back(classifiedImageVector[i]);
+    costList = std::vector<double>();
+    for (int i = 0; i < classifiedLabel.size(); i++) {
+        if (classifiedLabel[i].find(queryInput) != classifiedLabel[i].end()) {
+            std::set<std::string>::iterator iter;
+            std::cout << "Adding query element" << std::endl << std::flush;
+            for(iter = classifiedLabel[i].begin(); iter != classifiedLabel[i].end(); ++iter) {
+                std::cout << *iter << std::endl;
+            }
+            costList.push_back(classifiedFeatureVector[i].first);
             queryFeatures.push_back(classifiedFeatureVector[i].second);
-            costList.push_back(1);
         }
     }
+    n = costList.size();  // setting groundSet size
 }
 
 void QuerySimVideoSummarizer::computeKernel(int compareMethod) {
@@ -271,17 +317,51 @@ void QuerySimVideoSummarizer::summarizeCover(double coverage) {
 }
 
 void QuerySimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
-    std::cout << "Cannot play the summary video. Instead please call display\n";
+    cv::VideoCapture capture(videoFile);
+    cv::Mat frame;
+    capture.set(CV_CAP_PROP_POS_FRAMES, 0);
+    cv::VideoWriter videoWriter;
+    if (videoFileSave != "") {
+        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+    }
+    for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
+        capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[*it] * frameRate);
+        for (int i = segmentStartTimes[*it]; i < segmentStartTimes[*it + 1]; i++) {
+            for (int j = 0; j < frameRate; j++) {
+                capture >> frame;
+                cv::putText(frame, "Time: " + IntToString(i) + " seconds", cvPoint(30, 30),
+                            cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
+                if (frame.data) {
+                    cv::imshow("Summary Video", frame);
+                }
+                if (videoFileSave != "") {
+                    videoWriter.write(frame);
+                }
+                // Press  ESC on keyboard to exit
+                char c = static_cast<char>(cv::waitKey(25));
+                if (c == 27) {
+                    break;
+                }
+            }
+        }
+    }
+    capture.release();
 }
 
 void QuerySimVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size) {
     int summary_x = ceil(sqrt(summarySet.size()));
-    int summary_y = ceil(static_cast<double>(summarySet.size() / summary_x));
+    int summary_y = ceil(summarySet.size() / summary_x);
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
+    cv::VideoCapture capture(videoFile);
+    cv::Mat frame;
+    capture.set(CV_CAP_PROP_POS_FRAMES, 0);
     for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
-        summaryimages.push_back(queryVector[*it]);
+        capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[*it] * frameRate);
+        capture >> frame;
+        summaryimages.push_back(frame);
     }
-    cv::Mat collagesummary = cv::Mat::zeros(cv::Size(image_size * summary_x, image_size * summary_y), CV_8UC3);
+    capture.release();
+    cv::Mat collagesummary = cv::Mat(image_size * summary_y, image_size * summary_x, CV_8UC3);
     tile(summaryimages, collagesummary, summary_x, summary_y, summaryimages.size());
     cv::imshow("Summary Collage", collagesummary);
     if (imageFileSave != "") {

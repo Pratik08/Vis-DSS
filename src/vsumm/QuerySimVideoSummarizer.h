@@ -35,21 +35,25 @@ class QuerySimVideoSummarizer {
     int frameRate;
     int videoLength;  // Length of the video in seconds
     int summaryFunction;  // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
+    int segmentType;
+    // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
+    int snippetLength;  // in case of fixed length snippets, the length of the snippetHist
+    std::vector<int> segmentStartTimes;  // start times of the individual segments (each segment is an element in the ground set)
     CaffeClassifier cc;
     int n;  // ground truth size
-    std::vector<cv::Mat> classifiedImageVector;
-    std::vector<std::pair<std::string, std::vector<float> > > classifiedFeatureVector;
-    std::vector<cv::Mat> queryVector;
+    std::vector<std::set<std::string> > classifiedLabel;
+    std::vector<std::pair<double, std::vector<float> > > classifiedFeatureVector;
     std::vector<std::vector<float> > queryFeatures;
     std::set<int> summarySet;
     std::vector<double> costList;
     std::vector<std::vector<float> > kernel;
     std::string featureLayer;
+    double SmallShotPenalty = 10;
     bool debugMode;
     int featMode;
 
  public:
-    QuerySimVideoSummarizer(char* videoFile, CaffeClassifier & cc, std::string featureLayer, int summaryFunction = 0, bool debugMode = true);
+    QuerySimVideoSummarizer(char* videoFile, CaffeClassifier & cc, std::string featureLayer, int summaryFunction = 0, int segmentType = 0, int snippetLength = 2, bool debugMode = true);
     void extractFeatures();
     void processQuery(std::string queryInput);
     void computeKernel(int compareMethod = 0);

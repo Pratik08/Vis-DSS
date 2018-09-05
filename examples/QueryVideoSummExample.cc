@@ -10,8 +10,11 @@ char* videoSaveFile;
 // Video File to analyze
 int summaryFunctionSim = 0;
 // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
+int segmentType;
+// 0: Fixed Length Segments, 1: Segments based on Shot Detectors
 int summaryAlgo;
 // 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization
+int snippetLength = 2;  // in case of fixed length snippets, the length of the snippetHist
 int budget = 120;  // summary budget in seconds
 double thresh = 0.001;  // threshold for the stream Algorithm
 double coverfrac = 0.9;  // coverage fraction for submodular set cover
@@ -28,12 +31,14 @@ Arg Arg::Args[] = {
     Arg("videoSaveFile", Arg::Req, videoSaveFile, "Input Video File", Arg::SINGLE),
     Arg("queryInput", Arg::Req, queryInput, "Query input class", Arg::SINGLE),
     Arg("summaryModelSim", Arg::Opt, summaryFunctionSim, "Summarization Model -- 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage", Arg::SINGLE),
+    Arg("segmentType", Arg::Req, segmentType, "Segment Type -- 0: Fixed Length Segments, 1: Segments based on Shot Detectors", Arg::SINGLE),
     Arg("summaryAlgo", Arg::Req, summaryAlgo, "Summarization Algorithm: 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization", Arg::SINGLE),
     Arg("featureLayer", Arg::Req, featureLayer, "Layer Name for Feature Extraction", Arg::SINGLE),
     Arg("network_file", Arg::Req, network_file, "Input Network File", Arg::SINGLE),
     Arg("trained_file", Arg::Req, trained_file, "Trained Model File", Arg::SINGLE),
-    Arg("mean_file", Arg::Req, mean_file, "Mean File", Arg::SINGLE),
-    Arg("label_file", Arg::Req, label_file, "Label File", Arg::SINGLE),
+    Arg("mean_file", Arg::Opt, mean_file, "Mean File", Arg::SINGLE),
+    Arg("label_file", Arg::Opt, label_file, "Label File", Arg::SINGLE),
+    Arg("snippetLength", Arg::Opt, snippetLength, "Snippet Length", Arg::SINGLE),
     Arg("budget", Arg::Opt, budget, "Budget for summarization (if summarization algo is 0)", Arg::SINGLE),
     Arg("threshold", Arg::Opt, thresh, "Threshold for summarization (if summarization algo is 1)", Arg::SINGLE),
     Arg("coverage fraction", Arg::Opt, coverfrac, "coverage fraction for summarization (if summarization algo is 2)", Arg::SINGLE),
@@ -46,8 +51,9 @@ int main(int argc, char** argv) {
     if (!parse_was_ok) {
         Arg::usage(); exit(-1);
     }
+
     CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
-    QuerySimVideoSummarizer VS(videoFile, cc, featureLayer, summaryFunctionSim);
+    QuerySimVideoSummarizer VS(videoFile, cc, featureLayer, summaryFunctionSim, segmentType);
     VS.extractFeatures();
     VS.processQuery(queryInput);
     VS.computeKernel();
@@ -59,6 +65,7 @@ int main(int argc, char** argv) {
         VS.summarizeCover(coverfrac);
     }
     VS.playAndSaveSummaryVideo(videoSaveFile);
+    // VS.displayAndSaveSummaryMontage(videoSaveFile, 60);
     // When everything done, release the video capture object
     // Closes all the frames
     return 0;
