@@ -39,8 +39,9 @@ void SimpleImageSummarizer::computeKernel(int compare_method, double gamma) {
         std::vector<float> currvector;
         for (int j = 0; j < n; j++) {
             float val = cv::compareHist(collectionHist[i], collectionHist[j], compare_method);
-            if (max < val)
+            if (max < val) {
                 max = val;
+            }
             currvector.push_back(val);
         }
         kernel.push_back(currvector);

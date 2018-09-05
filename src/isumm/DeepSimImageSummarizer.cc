@@ -24,9 +24,7 @@ float DotProduct(std::vector<float> vec1, std::vector<float> vec2) {
     for (int i = 0; i < n; i++) {
         norm1 += vec1[i] * vec1[i];
         norm2 += vec2[i] * vec2[i];
-        for (int j = 0; j < n; j++) {
-            sim += vec1[i] * vec2[j];
-        }
+        sim += vec1[i] * vec2[i];
     }
     return sim / (sqrt(norm1) * sqrt(norm2));
 }
