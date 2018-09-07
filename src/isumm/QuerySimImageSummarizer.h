@@ -3,8 +3,8 @@
  *
  */
 
-#ifndef SRC_VSUMM_QUERYSIMVIDEOSUMMARIZER_H_
-#define SRC_VSUMM_QUERYSIMVIDEOSUMMARIZER_H_
+#ifndef SRC_ISUMM_QUERYSIMIMAGESUMMARIZER_H_
+#define SRC_ISUMM_QUERYSIMIMAGESUMMARIZER_H_
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -16,7 +16,6 @@
 #include "set.h"
 #include "ImageUtils.h"
 #include "ColorUtils.h"
-#include "ShotDetector.h"
 #include "DisparityMin.h"
 #include "FacilityLocation.h"
 #include "GraphCutFunctions.h"
@@ -29,32 +28,23 @@
 #include "lazyGreedyMax.h"
 #include "caffeClassifier.h"
 
-class QuerySimVideoSummarizer {
+class QuerySimImageSummarizer {
  protected:
-    char* videoFile;
-    int frameRate;
-    int videoLength;  // Length of the video in seconds
+    std::vector<cv::Mat> imageCollection;
     int summaryFunction;  // 0: DisparityMin, 1: MMR, 2: FacilityLocation, 3: GraphCut, 4: SaturatedCoverage
-    int segmentType;
-    // 0: Fixed Length Segments, 1: Segments based on Shot Detectors
-    int snippetLength;  // in case of fixed length snippets, the length of the snippetHist
-    std::vector<int> segmentStartTimes;  // start times of the individual segments (each segment is an element in the ground set)
-    CaffeClassifier cc;
     int n;  // ground truth size
-    std::vector<std::set<std::string> > classifiedLabel;
-    std::vector<std::pair<double, std::vector<float> > > classifiedFeatureVector;
+    std::vector<std::pair<std::set<std::string>, std::vector<float> > > classifiedImage;
+    std::vector<cv::Mat> queryImages;
     std::vector<std::vector<float> > queryFeatures;
-    std::vector<int> querySegmentStartTimes;
     std::set<int> summarySet;
     std::vector<double> costList;
     std::vector<std::vector<float> > kernel;
+    CaffeClassifier cc;
     std::string featureLayer;
-    double SmallShotPenalty = 10;
     bool debugMode;
-    int featMode;
 
  public:
-    QuerySimVideoSummarizer(char* videoFile, CaffeClassifier & cc, std::string featureLayer, int summaryFunction = 0, int segmentType = 0, int snippetLength = 2, bool debugMode = true);
+    QuerySimImageSummarizer(std::vector<cv::Mat>& imageCollection, CaffeClassifier & cc, std::string featureLayer, int summaryFunction = 0, bool debugMode = true);
     void extractFeatures();
     void processQuery(std::string queryInput);
     void computeKernel(int compareMethod = 0);
@@ -64,4 +54,4 @@ class QuerySimVideoSummarizer {
     void playAndSaveSummaryVideo(char* videoFileSave);
     void displayAndSaveSummaryMontage(char* imageFileSave, int image_size);
 };
-#endif  // SRC_VSUMM_QUERYSIMVIDEOSUMMARIZER_H_
+#endif  // SRC_ISUMM_QUERYSIMIMAGESUMMARIZER_H_
