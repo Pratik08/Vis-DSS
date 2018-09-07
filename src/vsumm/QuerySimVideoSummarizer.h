@@ -44,6 +44,7 @@ class QuerySimVideoSummarizer {
     std::vector<std::set<std::string> > classifiedLabel;
     std::vector<std::pair<double, std::vector<float> > > classifiedFeatureVector;
     std::vector<std::vector<float> > queryFeatures;
+    std::vector<int> querySegmentStartTimes;
     std::set<int> summarySet;
     std::vector<double> costList;
     std::vector<std::vector<float> > kernel;

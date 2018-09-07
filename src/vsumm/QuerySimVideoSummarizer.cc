@@ -81,8 +81,8 @@ void QuerySimVideoSummarizer::extractFeatures() {
         if (segmentStartTimes[i + 1] - segmentStartTimes[i] == 1) {
             capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[i] * frameRate);
             capture >> frame;
-            framePredictions = cc.Classify(frame, 1);
-            for (int k = 0; k < framePredictions.size(); k++) {
+            framePredictions = cc.Classify(frame, 2);
+            for (int k = 0; k < 1; k++) {  // Consider only the top label.
                 frameLabel.insert(framePredictions[k].first);
             }
             classifiedLabel.push_back(frameLabel);
@@ -96,8 +96,8 @@ void QuerySimVideoSummarizer::extractFeatures() {
             for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
                 capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
                 capture >> frame;
-                framePredictions = cc.Classify(frame, 1);
-                for (int k = 0; k < framePredictions.size(); k++) {
+                framePredictions = cc.Classify(frame, 2);
+                for (int k = 0; k < 1; k++) {  // Consider only the top label.
                     frameLabel.insert(framePredictions[k].first);
                 }
                 CurrVideo.push_back(frame.clone());
@@ -111,7 +111,7 @@ void QuerySimVideoSummarizer::extractFeatures() {
         frameFeature.clear();
         framePredictions.clear();
         if (debugMode) {
-            std::vector<std::pair<std::string, float> > res = cc.Classify(frame);
+            std::vector<std::pair<std::string, float> > res = cc.Classify(frame, 2);
             std::string labels = "";
             for (int i = 0; i < res.size() - 1; i++) {
                 labels = labels + res[i].first + ", ";
@@ -133,15 +133,12 @@ void QuerySimVideoSummarizer::extractFeatures() {
 void QuerySimVideoSummarizer::processQuery(std::string queryInput) {
     queryFeatures = std::vector<std::vector<float> >();
     costList = std::vector<double>();
+    querySegmentStartTimes = std::vector<int>();
     for (int i = 0; i < classifiedLabel.size(); i++) {
         if (classifiedLabel[i].find(queryInput) != classifiedLabel[i].end()) {
-            std::set<std::string>::iterator iter;
-            std::cout << "Adding query element" << std::endl << std::flush;
-            for(iter = classifiedLabel[i].begin(); iter != classifiedLabel[i].end(); ++iter) {
-                std::cout << *iter << std::endl;
-            }
             costList.push_back(classifiedFeatureVector[i].first);
             queryFeatures.push_back(classifiedFeatureVector[i].second);
+            querySegmentStartTimes.push_back(segmentStartTimes[i]);
         }
     }
     n = costList.size();  // setting groundSet size
@@ -325,8 +322,8 @@ void QuerySimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
         videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
     }
     for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
-        capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[*it] * frameRate);
-        for (int i = segmentStartTimes[*it]; i < segmentStartTimes[*it + 1]; i++) {
+        capture.set(CV_CAP_PROP_POS_FRAMES, querySegmentStartTimes[*it] * frameRate);
+        for (int i = querySegmentStartTimes[*it]; i < querySegmentStartTimes[*it + 1]; i++) {
             for (int j = 0; j < frameRate; j++) {
                 capture >> frame;
                 cv::putText(frame, "Time: " + IntToString(i) + " seconds", cvPoint(30, 30),
