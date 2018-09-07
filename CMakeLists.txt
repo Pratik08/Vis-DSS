@@ -133,6 +133,28 @@ target_link_libraries(QueryVideoSummExample
     -lopencv_objdetect
 )
 
+######################################### Query Image Summarizer Example ########################################
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/
+/Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/isumm/
+/Users/pratik/AITOE/aisaacv2_deps/caffe/include /usr/local/Cellar/openblas/0.2.20_1/include /usr/local/Cellar/glog/0.3.5_3/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/ /Users/pratik/AITOE/aisaacv2_deps/caffe/build/lib
+/usr/local/Cellar/openblas/0.2.20_1/lib /usr/local/Cellar/glog/0.3.5_3/lib)
+add_executable(QueryImageSummExample examples/QueryImageSummExample.cc src/utils/ColorUtils.cc
+    src/utils/caffeClassifier.cc src/isumm/QuerySimImageSummarizer.cc src/utils/ImageUtils.cc)
+set_source_files_properties(examples/QueryImageSummExample.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/utils/caffeClassifier.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/isumm/QuerySimImageSummarizer.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+target_link_libraries(QueryImageSummExample
+    summengine -lopencv_imgproc -lcaffe -lglog
+    -lopencv_core
+    -lopencv_highgui
+    -lopencv_videoio
+    -lopencv_imgcodecs
+    -lopencv_bgsegm
+    -lopencv_video
+    -lopencv_objdetect
+)
+
 ######################################### Entity Face Video Summarizer Example ########################################
 include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/
 /Users/pratik/Git/ivsumm/src/engine/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/Git/ivsumm/src/vsumm/
@@ -177,6 +199,24 @@ target_link_libraries(EntityObjectSummExample
     -lopencv_video
     -lopencv_objdetect
     -lopencv_dnn -lX11
+)
+
+######################################### Compute Distance Test ########################################
+include_directories(/usr/local/Cellar/opencv/3.4.1_2/include/ /usr/local/Cellar/opencv/3.4.1_2/include/opencv/ /Users/pratik/Git/ivsumm/src/utils/ /Users/pratik/AITOE/aisaacv2_deps/caffe/include /usr/local/Cellar/openblas/0.2.20_1/include /usr/local/Cellar/glog/0.3.5_3/include)
+link_directories(/usr/local/Cellar/opencv/3.4.1_2/lib/ /Users/pratik/AITOE/aisaacv2_deps/caffe/build/lib
+/usr/local/Cellar/openblas/0.2.20_1/lib /usr/local/Cellar/glog/0.3.5_3/lib)
+add_executable(computeDistance test/computeDistance.cc src/utils/caffeClassifier.cc)
+set_source_files_properties(test/computeDistance.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+set_source_files_properties(src/utils/caffeClassifier.cc PROPERTIES COMPILE_FLAGS "-DCPU_ONLY" )
+target_link_libraries(computeDistance
+  -lopencv_imgproc -lcaffe -lglog
+    -lopencv_core
+    -lopencv_highgui
+    -lopencv_videoio
+    -lopencv_imgcodecs
+    -lopencv_bgsegm
+    -lopencv_video
+    -lopencv_objdetect
 )
 
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "IVSUMM")
