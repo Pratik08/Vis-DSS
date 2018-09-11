@@ -251,7 +251,7 @@ void SimpleVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
     capture.set(CV_CAP_PROP_POS_FRAMES, 0);
     cv::VideoWriter videoWriter;
     if (videoFileSave != "") {
-        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(CV_CAP_PROP_FRAME_WIDTH), capture.get(CV_CAP_PROP_FRAME_HEIGHT)));
     }
     for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[*it] * frameRate);

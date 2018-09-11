@@ -1,7 +1,7 @@
-# IVSumm: Image and Video Summarization Library
+# Vis-DSS: Visual Data Subset Selection and Video/Image Summarization Using Submodular Functions
 
 ## License
-IVSUMM is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more details.
+Vis-DSS is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more details.
 
 ## Features and Functionalities
 1) Video Summarization
@@ -16,6 +16,13 @@ IVSUMM is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more de
 - `DeepSimImageSummarizer` using Features from a Deep Model and Similarity based functions
 - `DeepCoverImageSummarizer` using Features from a Deep Model and Coverage Based Functions
 - `QuerySimImageSummarizer` using Features from a Deep Model, Query Input by user and using Similarity based functions
+
+3) Data Subset Selection for Image Classification
+- `SupervisedDSS` (Supervised Data subset selection using the label information in the data subset selection)
+- `UnsupervisedDSS` (Unsupervised Data subset selection not using the label information in data subset selection)
+
+4) Diversified Active Learning for Image Classification
+
 
 ## Summarization Models (-summaryModel)
 - `Facility Location Functions` (Representation Models)
@@ -46,7 +53,7 @@ In the case of video summarization, we support two kinds of segmentation algorit
 - `cmake ..`
 - `make`
 
-## Example commands to run the executables:
+## Example commands to run the executables (Video and Image Summarization)
 - You can download the videos from here: https://drive.google.com/drive/folders/1EjM38f8mLRfhJ3dVSMD0OlnJWO3RTvLw
 
 1. SimpleVideoSummExample: DisparityMin with Budgeted Summarization
