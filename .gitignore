@@ -2,4 +2,5 @@ videos_all/
 build/
 images/
 videos/
+CMakeLists.txt
 .DS_Store

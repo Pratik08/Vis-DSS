@@ -7,9 +7,9 @@
 #include "DeepCoverImageSummarizer.h"
 
 static std::string IntToString(int a) {
-    stringstream ss;
+    std::stringstream ss;
     ss << a;
-    string str = ss.str();
+    std::string str = ss.str();
     return str;
 }
 
@@ -73,7 +73,7 @@ void DeepCoverImageSummarizer::extractFeatures() {
 void DeepCoverImageSummarizer::summarizeBudget(int budget) {
     Set optSet = Set();
     if (summaryFunction == 0) {
-        vector<double> featureWeights = vector<double>(nFeatures, 1);
+        std::vector<double> featureWeights = std::vector<double>(nFeatures, 1);
         for (int i = 0; i < featureWeights.size(); i++) {
             std::cout << featureWeights[i] << " ";
         }
@@ -103,7 +103,7 @@ void DeepCoverImageSummarizer::summarizeBudget(int budget) {
 void DeepCoverImageSummarizer::summarizeCover(double coverage) {
     Set optSet;
     if (summaryFunction == 0) {
-        vector<double> featureWeights = vector<double>(nFeatures, 1);
+        std::vector<double> featureWeights = std::vector<double>(nFeatures, 1);
         FeatureBasedFunctions ff(n, FeatureBasedFnType, classifierFeatures, featureWeights);
         lazyGreedyMaxSC(ff, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
@@ -154,7 +154,7 @@ void DeepCoverImageSummarizer::displayAndSaveSummaryMontage(char* imageFileSave,
     int summary_x = ceil(sqrt(summarySet.size()));
     int summary_y = ceil(summarySet.size() / summary_x);
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
-    for (set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
+    for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
         summaryimages.push_back(ImageCollection[*it]);
     }
     cv::Mat collagesummary = cv::Mat::zeros(cv::Size(image_size * summary_x, image_size * summary_y), CV_8UC3);

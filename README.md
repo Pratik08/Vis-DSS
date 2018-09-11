@@ -9,11 +9,13 @@ Vis-DSS is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more d
 - `DeepSimVideoSummarizer` using Features from a Deep Model and Similarity based functions
 - `DeepCoverVideoSummarizer` using Features from a Deep Model and Coverage Based Functions
 - `EntitySimVideoSummarizer` using Entity Models and Features from a Deep Model and Similarity based functions
+- `QuerySimVideoSummarizer` using Features from a Deep Model, Query Input by user and using Similarity based functions
 
 2) Image Collection Summarization
 - `SimpleImageSummarizer` (using Color Histogram features)
 - `DeepSimImageSummarizer` using Features from a Deep Model and Similarity based functions
 - `DeepCoverImageSummarizer` using Features from a Deep Model and Coverage Based Functions
+- `QuerySimImageSummarizer` using Features from a Deep Model, Query Input by user and using Similarity based functions
 
 3) Data Subset Selection for Image Classification
 - `SupervisedDSS` (Supervised Data subset selection using the label information in the data subset selection)
@@ -36,7 +38,7 @@ Vis-DSS is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more d
 
 ## Segment Type (-segmentType)
 In the case of video summarization, we support two kinds of segmentation algorithms
-- Fixed Lengh Snippets
+- Fixed Length Snippets
 - Shot Detection based Snippets
 
 ## Dependencies
@@ -54,7 +56,7 @@ In the case of video summarization, we support two kinds of segmentation algorit
 ## Example commands to run the executables (Video and Image Summarization)
 - You can download the videos from here: https://drive.google.com/drive/folders/1EjM38f8mLRfhJ3dVSMD0OlnJWO3RTvLw
 
-1. SimpleVideoSummExample: DisparityMin with Budgeted Summarization 
+1. SimpleVideoSummExample: DisparityMin with Budgeted Summarization
 `./SimpleVideoSummExample -videoFile <videoFileName> -videoSaveFile <videoSummaryFileName> -summaryModel 0 -segmentType 0 -summaryAlgo 0 -budget 30`
 
 2. SimpleVideoSummExample: Facility Location with Budgeted Summarization

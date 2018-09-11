@@ -7,18 +7,15 @@
 #include "DeepCoverVideoSummarizer.h"
 
 static std::string IntToString(int a) {
-    stringstream ss;
+    std::stringstream ss;
     ss << a;
-    string str = ss.str();
+    std::string str = ss.str();
     return str;
 }
 
 DeepCoverVideoSummarizer::DeepCoverVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer,
-                                                   int summaryFunction, int FeatureBasedFnType, int segmentType, int snippetLength, bool debugMode) : videoFile(videoFile),
-    cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), FeatureBasedFnType(FeatureBasedFnType), segmentType(segmentType),
-    snippetLength(snippetLength), debugMode(debugMode) {
+                                                   int summaryFunction, int FeatureBasedFnType, int segmentType, int snippetLength, bool debugMode) : videoFile(videoFile), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), FeatureBasedFnType(FeatureBasedFnType), segmentType(segmentType), snippetLength(snippetLength), debugMode(debugMode) {
     cv::VideoCapture capture(videoFile);
-
     frameRate = static_cast<int>(capture.get(CV_CAP_PROP_FPS));
     videoLength = capture.get(CV_CAP_PROP_FRAME_COUNT) / frameRate;
     std::cout << "The video Length is " << videoLength << " and the frameRate is " << frameRate << "\n";
@@ -37,8 +34,9 @@ void DeepCoverVideoSummarizer::extractFeatures() {
     capture.set(CV_CAP_PROP_POS_FRAMES, 0);
     cv::Mat frame;
     std::vector<cv::Mat> CurrVideo = std::vector<cv::Mat> ();
-    if (!capture.isOpened())
+    if (!capture.isOpened()) {
         std::cout << "Error when reading steam" << "\n";
+    }
     int frame_count = 0;
     int samplingRate = 1;
     costList = std::vector<double>();
@@ -64,10 +62,11 @@ void DeepCoverVideoSummarizer::extractFeatures() {
                     labelMap[res[i].first] = labelMap.size();
             }
             labelSegmentList.push_back(currLabels);
-            if (segmentType == 1)
+            if (segmentType == 1) {
                 costList.push_back(SmallShotPenalty);
-            else
+            } else {
                 costList.push_back(1);
+            }
         } else {
             for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
                 capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
@@ -105,12 +104,14 @@ void DeepCoverVideoSummarizer::extractFeatures() {
             labels = labels + res[res.size() - 1].first;
             cv::putText(frame, labels, cvPoint(30, 30),
                         cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
-            if (frame.data)
+            if (frame.data) {
                 cv::imshow("Debug Video", frame);
+            }
             // Press  ESC on keyboard to exit
             char c = static_cast<char>(cv::waitKey(25));
-            if (c == 27)
+            if (c == 27) {
                 break;
+            }
         }
     }
     capture.release();
@@ -129,7 +130,7 @@ void DeepCoverVideoSummarizer::extractFeatures() {
 void DeepCoverVideoSummarizer::summarizeBudget(int budget) {
     Set optSet = Set();
     if (summaryFunction == 0) {
-        vector<double> featureWeights = vector<double>(nFeatures, 1);
+        std::vector<double> featureWeights = std::vector<double>(nFeatures, 1);
         for (int i = 0; i < featureWeights.size(); i++) {
             std::cout << featureWeights[i] << " ";
         }
@@ -154,13 +155,12 @@ void DeepCoverVideoSummarizer::summarizeBudget(int budget) {
             summarySet.insert(*it);
         }
     }
-    // cout << "Done with summarization\n" << flush;
 }
 
 void DeepCoverVideoSummarizer::summarizeCover(double coverage) {
     Set optSet;
     if (summaryFunction == 0) {
-        vector<double> featureWeights = vector<double>(nFeatures, 1);
+        std::vector<double> featureWeights = std::vector<double>(nFeatures, 1);
         FeatureBasedFunctions ff(n, FeatureBasedFnType, classifierFeatures, featureWeights);
         lazyGreedyMaxSC(ff, costList, coverage, optSet, 0);
         summarySet = std::set<int>();
@@ -182,7 +182,6 @@ void DeepCoverVideoSummarizer::summarizeCover(double coverage) {
             summarySet.insert(*it);
         }
     }
-    // cout << "Done with summarization\n" << flush;
 }
 
 void DeepCoverVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
@@ -206,7 +205,6 @@ void DeepCoverVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
                 if (videoFileSave != "") {
                     videoWriter.write(frame);
                 }
-                // Press  ESC on keyboard to exit
                 char c = static_cast<char>(cv::waitKey(25));
                 if (c == 27) {
                     break;

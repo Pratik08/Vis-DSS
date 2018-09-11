@@ -1,111 +1,179 @@
 /*
-    Copyright (C) Rishabh Iyer
-    Author: Rishabh Iyer
-    Simple Video Summarizer using Color Histogram
+    Copyright to be added.
  *
  */
-#include "SimpleVideoSummarizer.h"
 
-std::string IntToString(int a) {
-    stringstream ss;
+#include "QuerySimVideoSummarizer.h"
+
+static std::string IntToString(int a) {
+    std::stringstream ss;
     ss << a;
-    string str = ss.str();
+    std::string str = ss.str();
     return str;
 }
-double SmallShotPenalty = 10;
 
-SimpleVideoSummarizer::SimpleVideoSummarizer(char* videoFile, int summaryFunction, int segmentType, int snippetLength) : videoFile(videoFile), summaryFunction(summaryFunction), segmentType(segmentType), snippetLength(snippetLength) {
+float DotProduct(std::vector<float> vec1, std::vector<float> vec2) {
+    if (vec1.size() != vec2.size()) {
+        std::cout << "Error: Both vectors need to be of the same size\n";
+    }
+    float sim = 0;
+    float norm1 = 0;
+    float norm2 = 0;
+    int n = vec1.size();
+    for (int i = 0; i < n; i++) {
+        norm1 += vec1[i] * vec1[i];
+        norm2 += vec2[i] * vec2[i];
+        sim += vec1[i] * vec2[i];
+    }
+    return sim / (sqrt(norm1) * sqrt(norm2));
+}
+
+float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2) {
+    if (vec1.size() != vec2.size()) {
+        std::cout << "Error: Both vectors need to be of the same size\n";
+    }
+    float diff = 0;
+    float norm1 = 0;
+    float norm2 = 0;
+    int n = vec1.size();
+    for (int i = 0; i < n; i++) {
+        norm1 += vec1[i] * vec1[i];
+        norm2 += vec2[i] * vec2[i];
+    }
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < vec2.size(); j++) {
+            diff += vec1[i] / sqrt(norm1) - vec2[j] / sqrt(norm2);
+        }
+    }
+    return exp(-diff / 2);
+}
+
+QuerySimVideoSummarizer::QuerySimVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer, int summaryFunction, int segmentType, int snippetLength, bool debugMode) : videoFile(videoFile), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), segmentType(segmentType), snippetLength(snippetLength), debugMode(debugMode) {
     cv::VideoCapture capture(videoFile);
     frameRate = static_cast<int>(capture.get(CV_CAP_PROP_FPS));
     videoLength = capture.get(CV_CAP_PROP_FRAME_COUNT) / frameRate;
     std::cout << "The video Length is " << videoLength << " and the frameRate is " << frameRate << "\n";
     if (segmentType == 0) {
-        for (int i = 0; i < videoLength; i += snippetLength)
+        for (int i = 0; i < videoLength; i += snippetLength) {
             segmentStartTimes.push_back(i);
+        }
     } else {
         segmentStartTimes = shotDetector(capture);
     }
     capture.release();
 }
 
-void SimpleVideoSummarizer::extractFeatures(double resizeParam) {
+void QuerySimVideoSummarizer::extractFeatures() {
+    classifiedLabel = std::vector<std::set<std::string> >();
+    classifiedFeatureVector = std::vector<std::pair<double, std::vector<float> > >();  // pair of cost and feature
+    std::vector<cv::Mat> CurrVideo = std::vector<cv::Mat>();
+    std::vector<std::pair<std::string, float> > framePredictions = std::vector<std::pair<std::string, float> >();
+    std::vector<float> frameFeature = std::vector<float>();
+    std::set<std::string> frameLabel = std::set<std::string>();
+
     cv::VideoCapture capture(videoFile);
-    capture.set(CV_CAP_PROP_POS_FRAMES, 0);
+    frameRate = static_cast<int>(capture.get(CV_CAP_PROP_FPS));
     cv::Mat frame;
-    std::vector<cv::Mat> CurrVideo = std::vector<cv::Mat> ();
-    if (!capture.isOpened())
-        std::cout << "Error when reading steam" << "\n";
-    int frame_count = 0;
-    int samplingRate = 1;
-    costList = std::vector<double>();
+    if (!capture.isOpened()) {
+        std::cout << "Error when reading video file" << std::endl;
+    }
     for (int i = 0; i < segmentStartTimes.size() - 1; i++) {
         if (segmentStartTimes[i + 1] - segmentStartTimes[i] == 1) {
-            cv::MatND hist;
             capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[i] * frameRate);
             capture >> frame;
-            cv::resize(frame, frame, cv::Size(frame.cols * resizeParam, frame.rows * resizeParam));
-            colorHist(frame, hist);
-            snippetHist.push_back(hist);
-            if (segmentType == 1)
-                costList.push_back(SmallShotPenalty);
-            else
-                costList.push_back(1);
+            framePredictions = cc.Classify(frame, 2);
+            for (int k = 0; k < 1; k++) {  // Consider only the top label.
+                frameLabel.insert(framePredictions[k].first);
+            }
+            classifiedLabel.push_back(frameLabel);
+            frameFeature = cc.Predict(frame, featureLayer);
+            if (segmentType == 1) {
+                classifiedFeatureVector.push_back(std::make_pair(SmallShotPenalty, frameFeature));
+            } else {
+                classifiedFeatureVector.push_back(std::make_pair(1, frameFeature));  // default segment cost of 1
+            }
         } else {
             for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
                 capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
                 capture >> frame;
-                cv::resize(frame, frame, cv::Size(frame.cols * resizeParam, frame.rows * resizeParam));
+                framePredictions = cc.Classify(frame, 2);
+                for (int k = 0; k < 1; k++) {  // Consider only the top label.
+                    frameLabel.insert(framePredictions[k].first);
+                }
                 CurrVideo.push_back(frame.clone());
             }
-            cv::MatND hist;
-            colorHist(CurrVideo, 0, CurrVideo.size() - 1, hist);
-            snippetHist.push_back(hist);
-            costList.push_back(CurrVideo.size());
+            frameFeature = cc.Predict(CurrVideo, featureLayer);
+            classifiedLabel.push_back(frameLabel);
+            classifiedFeatureVector.push_back(std::make_pair(CurrVideo.size(), frameFeature));
             CurrVideo.clear();
         }
+        frameLabel.clear();
+        frameFeature.clear();
+        framePredictions.clear();
+        if (debugMode) {
+            std::vector<std::pair<std::string, float> > res = cc.Classify(frame, 2);
+            std::string labels = "";
+            for (int i = 0; i < res.size() - 1; i++) {
+                labels = labels + res[i].first + ", ";
+            }
+            labels = labels + res[res.size() - 1].first;
+            cv::putText(frame, labels, cvPoint(30, 30), cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8, cvScalar(200, 200, 250), 1, CV_AA);
+            if (frame.data) {
+                cv::imshow("Debug Video", frame);
+            }
+            // Press  ESC on keyboard to exit
+            char c = static_cast<char>(cv::waitKey(25));
+            if (c == 27) {
+                break;
+            }
+        }
     }
-    capture.release();
-    n = snippetHist.size();
-    capture.release();
 }
 
-void SimpleVideoSummarizer::computeKernel(int compare_method, double gamma) {
-    // compare_method is the comparision method for histogram similarity
-    // gamma is a power of the similarity function: s_{ij} = sim(H_i, H_j)^{\gamma}
+void QuerySimVideoSummarizer::processQuery(std::string queryInput) {
+    queryFeatures = std::vector<std::vector<float> >();
+    costList = std::vector<double>();
+    querySegmentStartTimes = std::vector<int>();
+    for (int i = 0; i < classifiedLabel.size(); i++) {
+        if (classifiedLabel[i].find(queryInput) != classifiedLabel[i].end()) {
+            costList.push_back(classifiedFeatureVector[i].first);
+            queryFeatures.push_back(classifiedFeatureVector[i].second);
+            querySegmentStartTimes.push_back(segmentStartTimes[i]);
+        }
+    }
+    n = costList.size();  // setting groundSet size
+}
+
+void QuerySimVideoSummarizer::computeKernel(int compareMethod) {
+    // compareMethod is the comparision method for similarity (0: DotProduct, 1:GaussianSimilarity)
     float max = 0;
+    std::cout << "Started Compute Kernel\n";
+    kernel = std::vector<std::vector <float> >();
     for (int i = 0; i < n; i++) {
-        std::vector<float> currvector;
+        std::vector<float> currvector = std::vector<float>();
         for (int j = 0; j < n; j++) {
-            float val = cv::compareHist(snippetHist[i], snippetHist[j], compare_method);
-            if (max < val) {
-                max = val;
+            float val;
+            if (compareMethod == 0) {
+                val = DotProduct(queryFeatures[i], queryFeatures[j]);
+            } else {
+                val = GaussianSimilarity(queryFeatures[i], queryFeatures[j]);
             }
             currvector.push_back(val);
         }
         kernel.push_back(currvector);
     }
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            if ((compare_method == 0) || (compare_method == 2)) {
-                kernel[i][j] = kernel[i][j] / max;
-            } else if ((compare_method == 1) || (compare_method == 3)) {
-                kernel[i][j] = (max - kernel[i][j]) / max;
-            }
-            if (compare_method == 0) {
-                kernel[i][j] = (kernel[i][j] + 1) / 2;
-            }
-            kernel[i][j] = pow(kernel[i][j], gamma);
-        }
-    }
+    std::cout << "Done Compute Kernel\n";
 }
 
-void SimpleVideoSummarizer::summarizeBudget(int budget) {
+void QuerySimVideoSummarizer::summarizeBudget(int budget) {
     Set optSet;
     if (summaryFunction == 0) {
         DisparityMin dM(n, kernel);
         int inititem = 1;  // rand()%n;
         optSet.insert(inititem);
+        std::cout << "About to start naivegreedy max\n" << std::flush;
         naiveGreedyMaxKnapsack(dM, costList, budget, optSet, 1, false, true);
+        std::cout << "Finished naivegreedy max\n" << std::flush;
         summarySet = std::set<int>();
         for (Set::iterator it = optSet.begin(); it != optSet.end(); it++) {
             summarySet.insert(*it);
@@ -144,12 +212,12 @@ void SimpleVideoSummarizer::summarizeBudget(int budget) {
     // cout << "Done with summarization\n" << flush;
 }
 
-void SimpleVideoSummarizer::summarizeStream(double epsilon) {
+void QuerySimVideoSummarizer::summarizeStream(double epsilon) {
     Set optSet;
     if (summaryFunction == 0) {
         DisparityMin dM(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -162,7 +230,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 1) {
         MMR m(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -175,7 +243,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 2) {
         FacilityLocation fL(n, kernel);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -188,7 +256,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 3) {
         GraphCutFunctions gC(n, kernel, 0.5);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -201,7 +269,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     } else if (summaryFunction == 4) {
         SaturateCoverage sC(n, kernel, 0.1);
         optSet.insert(0);
-        vector<int> order(n, 1);
+        std::vector<int> order(n, 1);
         for (int i = 0; i < n; i++) {
             order[i] = i;
         }
@@ -214,7 +282,7 @@ void SimpleVideoSummarizer::summarizeStream(double epsilon) {
     }
 }
 
-void SimpleVideoSummarizer::summarizeCover(double coverage) {
+void QuerySimVideoSummarizer::summarizeCover(double coverage) {
     Set optSet;
     if (summaryFunction == 0) {
         std::cout << "Cover Summarization is not supported for Disparity Min Function\n";
@@ -245,17 +313,17 @@ void SimpleVideoSummarizer::summarizeCover(double coverage) {
     // cout << "Done with summarization\n" << flush;
 }
 
-void SimpleVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
+void QuerySimVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
     cv::VideoCapture capture(videoFile);
     cv::Mat frame;
     capture.set(CV_CAP_PROP_POS_FRAMES, 0);
     cv::VideoWriter videoWriter;
     if (videoFileSave != "") {
-        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(CV_CAP_PROP_FRAME_WIDTH), capture.get(CV_CAP_PROP_FRAME_HEIGHT)));
+        videoWriter = cv::VideoWriter(videoFileSave, CV_FOURCC('M', 'J', 'P', 'G'), static_cast<int>(capture.get(CV_CAP_PROP_FPS)), cv::Size(capture.get(cv::CAP_PROP_FRAME_WIDTH), capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
     }
     for (std::set<int>::iterator it = summarySet.begin(); it != summarySet.end(); it++) {
-        capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[*it] * frameRate);
-        for (int i = segmentStartTimes[*it]; i < segmentStartTimes[*it + 1]; i++) {
+        capture.set(CV_CAP_PROP_POS_FRAMES, querySegmentStartTimes[*it] * frameRate);
+        for (int i = querySegmentStartTimes[*it]; i < querySegmentStartTimes[*it + 1]; i++) {
             for (int j = 0; j < frameRate; j++) {
                 capture >> frame;
                 cv::putText(frame, "Time: " + IntToString(i) + " seconds", cvPoint(30, 30),
@@ -277,7 +345,7 @@ void SimpleVideoSummarizer::playAndSaveSummaryVideo(char* videoFileSave) {
     capture.release();
 }
 
-void SimpleVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size) {
+void QuerySimVideoSummarizer::displayAndSaveSummaryMontage(char* imageFileSave, int image_size) {
     int summary_x = ceil(sqrt(summarySet.size()));
     int summary_y = ceil(summarySet.size() / summary_x);
     std::vector<cv::Mat> summaryimages = std::vector<cv::Mat>();
