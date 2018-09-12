@@ -10,6 +10,7 @@
 #include <vector>
 #include "SetFunctions.h"
 #include "set.h"
+#include "assert.h"
 
 void streamGreedy(const SetFunctions& f, double epsilon, Set& greedySet, std::vector<int>& stream, int verbosity = 0);
 

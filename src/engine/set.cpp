@@ -24,7 +24,7 @@ Set::Set(const Set& other) : uset(other.uset) {
 }                                                    // deep copy
 
 Set& Set::operator=(const Set& other) {      // deep copy
-    Set::iterator it;
+    Set::const_iterator it;
     for (it = other.begin(); it != other.end(); it++) {
         uset.insert(*it);
     }
