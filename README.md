@@ -1,4 +1,4 @@
-# Vis-DSS: Visual Data Subset Selection and Video/Image Summarization Using Submodular Functions
+# Vis-DSS: Visual Data Subset Selection and Visual Data Summarization Using Submodular Functions
 
 ## License
 Vis-DSS is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more details.
