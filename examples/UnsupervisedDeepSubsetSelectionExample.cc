@@ -65,13 +65,13 @@ int main(int argc, char** argv) {
     std::vector<std::string> ImageCollectionName = std::vector<std::string>();
     CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
 
+    std::cout << "Loading images..." << std::endl;
     while (std::getline(in, imageName)) {
       if (imageName.substr(imageName.find_last_of(".") + 1) != "DS_Store") {
         cv::Mat img = cv::imread(imageName);
         if (!img.empty()) {
           ImageCollection.push_back(img);
           ImageCollectionName.push_back(imageName);
-          std::cout << imageName << '\n';
         }
       }
     }

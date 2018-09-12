@@ -71,6 +71,8 @@ int main(int argc, char** argv) {
     CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
     std::string imageNameWithClass;
     std::string label;
+    
+    std::cout << "Loading images..." << std::endl;
     while (std::getline(in, imageName)) {
       if (imageName.substr(imageName.find_last_of(".") + 1) != "DS_Store") {
         cv::Mat img = cv::imread(imageName);
@@ -80,7 +82,6 @@ int main(int argc, char** argv) {
           ImageCollection.push_back(img);
           ImageCollectionName.push_back(imageName);
           ImageCollectionLabels.push_back(std::stoi(label));
-          std::cout << imageName << " " << label <<'\n';
         }
       }
     }
