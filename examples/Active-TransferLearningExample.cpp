@@ -3,7 +3,7 @@
 #include <fstream>
 #include "../src/utils/json.hpp"
 #include "../src/utils/caffeClassifier.h"
-#include "../src/imageSummarization/ATL.h"
+#include "../src/activeLearning/ATL.h"
 
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -64,7 +64,7 @@ void extractFeatures(std::string dataJsonPath,
         loadData(dataJsonPath, dataJson);
         std::cout << "json data loaded!" << std::endl;
         for (nlohmann::json::iterator it = dataJson.begin(); it != dataJson.end(); it++) {
-		std::cout << it.key() << " " << it.value() << std::endl;		
+		std::cout << it.key() << " " << it.value() << std::endl;
 		std::vector<std::string> frames = it.value();
                 std::string className = it.key();
                 int currentIntLabel;
@@ -96,18 +96,21 @@ void extractFeatures(std::string dataJsonPath,
 int main(int argc, char *argv[]) {
 //feature extractor, beta, full dataset, test dataset json, b
 //int totalSubsetFunctionsSize = 8;
-      if (argc < 10) {
+      if (argc < 12) {
         std::cout << "usage: ./ActiveTransferLearningExample [trainingDataJsonPath] [trainingJsonSavePath]"
-          << " [testingDataJsonPath] [testingJsonSavePath] [betaPercent%] [bPercent%] [initialSeedPercentage%]"
-          << "[uncertaintyMode-optional(0-argMax, 1-marginalSampline,2-Entropy)] [subsetSelectionMode]"
+          << " [testingDataJsonPath] [testingJsonSavePath] [betaPercent%] [bPercent%] [initialSeedPercentage%] [upperLimitPercent]"
+          << "[uncertaintyMode-optional(0-argMax, 1-marginalSampline,2-Entropy)] [subsetSelectionMode] [csvFilePath]"
           << std::endl;
         return -1;
       }
-        int subsetSelectionMode = 0;
+
         double betaPercent = std::atof(argv[5]);
         double bPercent = std::atof(argv[6]);
         float initialSeedPercentage = std::atof(argv[7]);
         double upperLimitPercent = std::atof(argv[8]);
+        int uncertaintyMode = std::atoi(argv[9]);
+        int subsetSelectionMode = std::atoi(argv[10]);
+        std::string csvFilePath = argv[11];
         if (upperLimitPercent > 100) {
                 upperLimitPercent = 100;
         }
@@ -119,8 +122,10 @@ int main(int argc, char *argv[]) {
         std::vector<std::pair<int, std::string> > trainingStringToIntLabels;
         std::string caffeNetworkFilePath = "/home/aitoe/bvlc_alexnet/deploy.prototxt";
         std::string caffeTrainedFilePath = "/home/aitoe/bvlc_alexnet/bvlc_reference_caffenet.caffemodel";
+        std::string meanFilePath = "/home/aitoe/bvlc_alexnet/imagenet_mean.binaryproto";
+        std::string labelFilePath = "/home/aitoe/bvlc_alexnet/labels.txt";
         std::string caffeFeatureExtractionLayer = "fc6";
-        CaffeClassifier* caffeClassifier = new CaffeClassifier(caffeNetworkFilePath, caffeTrainedFilePath);
+        CaffeClassifier* caffeClassifier = new CaffeClassifier(caffeNetworkFilePath, caffeTrainedFilePath, meanFilePath, labelFilePath);
         if(!file_exists(trainingJsonSavePath)) {
                 extractFeatures(trainingDataJsonPath, fullTrainingFeatureVectors, fullTrainingIntLabels, trainingStringToIntLabels, trainingFeaturesJson, trainingJsonSavePath, caffeFeatureExtractionLayer, caffeClassifier, true);
                 fullTrainingFeatureVectors.clear();
@@ -194,6 +199,49 @@ int main(int argc, char *argv[]) {
         if (b > beta) {
                 beta = b;
         }
-        ATL* atl = new ATL(seedFeatureVectors, seedIntLabels, fullTrainingFeatureVectors, fullTrainingIntLabels, trainingStringToIntLabels, testingFeatureVectors, testingIntLabels, testingStringToIntLabels, beta, b, uncertaintyMode, subsetSelectionMode);
+        std::cout << "Debug UpperLimitPercent " << upperLimitPercent <<std::endl << std::flush;
+        std::cout << "Debug bPercent " << bPercent <<std::endl << std::flush;
+        std::cout << "Debug b " << b <<std::endl << std::flush;
+        std::cout << "Debug T " << T <<std::endl << std::flush;
+        std::cout << "Debug betaPercent " << betaPercent <<std::endl << std::flush;
+        std::cout << "Debug beta " << beta <<std::endl << std::flush;
+        //std::string resultsFileName = std::to_string(betaPercent) + "_" + std::to_string(bPercent) + ".csv";
+        //preparing output csv file
+        std::cout << "Preparing results csv file ..." << std::endl;
+
+        std::ofstream csvFile;
+        csvFile.open(csvFilePath);
+        csvFile << "Goal 2 - Active Learning with transfer learning\n" << std::flush;
+        csvFile << "Training Dataset," << trainingDataJsonPath << std::endl << std::flush;
+        csvFile << "Testing Dataset," << testingDataJsonPath << std::endl << std::flush;
+        csvFile << "Training data features json path," << trainingJsonSavePath << std::endl << std::flush;
+        csvFile << "Testing data features json path," << testingJsonSavePath << std::endl << std::flush;
+        csvFile << "Caffe feature extraction layer," << caffeFeatureExtractionLayer << std::endl << std::flush;
+        csvFile << "Pre-trained Model ," << caffeTrainedFilePath << std::endl << std::flush;
+        csvFile << "Total Training data ,"
+            << (seedFeatureVectors.size()+fullTrainingFeatureVectors.size()) << std::endl << std::flush;
+        csvFile << "Initial Seed% ," << initialSeedPercentage << std::endl << std::flush;
+        csvFile << "Initial Seed ," << seedFeatureVectors.size() << std::endl << std::flush;
+        csvFile << "Remaining Unlabelled Data ," << fullTrainingFeatureVectors.size() << std::endl << std::flush;
+        csvFile << "Initial Beta% ," << betaPercent << std::endl << std::flush;
+        csvFile << "Initial Beta ," << beta << std::endl << std::flush;
+        csvFile << "Initial B% ," << bPercent << std::endl << std::flush;
+        csvFile << "Initial B ," << b << std::endl << std::flush;
+        csvFile << "Uncertainty selection Mode," << uncertaintyMode << std::endl << std::flush;
+        csvFile << "DATK Threshold," << 0.1 << std::endl << std::flush;
+        csvFile << "\n\n";
+        csvFile << "Mode\\t,";
+        for (int t = 0; t<=T ; t++) {
+            csvFile << t << ",";
+        }
+        csvFile << std::endl << std::flush;
+        if(subsetSelectionMode==0){
+          csvFile << "FASS with SMF1 = FacilityLocation" << std::flush;
+        }
+        else{
+          csvFile << "FASS with SMF2  = Disparity Min" << std::flush;
+        }
+        csvFile.close();
+        ATL* atl = new ATL(seedFeatureVectors, seedIntLabels, fullTrainingFeatureVectors, fullTrainingIntLabels, trainingStringToIntLabels, testingFeatureVectors, testingIntLabels, testingStringToIntLabels, beta, b, uncertaintyMode, subsetSelectionMode, csvFilePath);
         atl->run(T);
 }
