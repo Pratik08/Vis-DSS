@@ -4,7 +4,7 @@ bool sortByUncertainty(const std::pair<int,double> &a, const std::pair<int,doubl
     return a.second > b.second;
 }
 
-ATL::ATL(std::vector<std::vector <float>> trainingFeatureVectors, jensen::Vector trainingIntLabels, std::vector<std::vector<float>> unlabeledTrainingFeatureVectors, jensen::Vector unlabeledTrainingIntLabels, std::vector<std::pair<int, std::string>> trainingStringToIntLabels, std::vector<std::vector<float>> testingFeatureVectors, jensen::Vector testingIntLabels, std::vector<std::pair<int, std::string>> testingStringToIntLabels, int beta, int b, int uncertaintyMode, int subsetSelectionMode){
+ATL::ATL(std::vector<std::vector <float>> trainingFeatureVectors, jensen::Vector trainingIntLabels, std::vector<std::vector<float>> unlabeledTrainingFeatureVectors, jensen::Vector unlabeledTrainingIntLabels, std::vector<std::pair<int, std::string>> trainingStringToIntLabels, std::vector<std::vector<float>> testingFeatureVectors, jensen::Vector testingIntLabels, std::vector<std::pair<int, std::string>> testingStringToIntLabels, int beta, int b, int uncertaintyMode, int subsetSelectionMode, std::string csvFilePath){
   this->trainingFeatureVectors = trainingFeatureVectors;
   this->trainingIntLabels = trainingIntLabels;
   this->unlabeledTrainingFeatureVectors = unlabeledTrainingFeatureVectors;
@@ -17,6 +17,7 @@ ATL::ATL(std::vector<std::vector <float>> trainingFeatureVectors, jensen::Vector
   this->b = b;
   this->uncertaintyMode = uncertaintyMode;
   this->subsetSelectionMode = subsetSelectionMode;
+  this->csvFilePath = csvFilePath;
 }
 
 ATL::~ATL(){}
@@ -150,7 +151,7 @@ double ATL::predictAccuracy(
     return accuracy;
 }
 
-Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVectors,
+Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVectors, jensen::Vector featureIntLabels,
     double budget,
     Set &subsetIndices) {
     //for each feature vector i (0 to n), compute its dot product with feature vector j (0 to n), update min, update max, store at k(i,j)
@@ -173,7 +174,9 @@ Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVec
             }
             std::vector<double> A(featureVectors.at(i).begin(),featureVectors.at(i).end());
             std::vector<double> B(featureVectors.at(j).begin(),featureVectors.at(j).end());
-            val = jensen::innerProduct(A,B);
+            if(featureIntLabels[i] == featureIntLabels[j]){
+              val = jensen::innerProduct(A,B);
+            }
             if(val < min) min = val;
             if(val > max) max = val;
             currvector.push_back(val);
@@ -201,7 +204,7 @@ Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVec
     return scaledIndices;
 }
 
-Set ATL::getBIndicesDisparityMin(std::vector<std::vector<float>> &featureVectors,
+Set ATL::getBIndicesDisparityMin(std::vector<std::vector<float>> &featureVectors, jensen::Vector featureIntLabels,
     double budget,
     Set &subsetIndices) {
     //for each feature vector i (0 to n), compute its dot product with feature vector j (0 to n), update min, update max, store at k(i,j)
@@ -224,7 +227,9 @@ Set ATL::getBIndicesDisparityMin(std::vector<std::vector<float>> &featureVectors
             }
             std::vector<double> A(featureVectors.at(i).begin(),featureVectors.at(i).end());
             std::vector<double> B(featureVectors.at(j).begin(),featureVectors.at(j).end());
-            val = jensen::innerProduct( A,B);
+            if(featureIntLabels[i] == featureIntLabels[j]){
+              val = jensen::innerProduct(A,B);
+            }
             if(val < min) min = val;
             if(val > max) max = val;
             currvector.push_back(val);
@@ -251,6 +256,38 @@ Set ATL::getBIndicesDisparityMin(std::vector<std::vector<float>> &featureVectors
     return scaledIndices;
 }
 
+Set ATL::getBIndicesUncertaintySampling(int budget, Set &subsetIndices) {
+    Set indices;
+    Set::iterator it;
+    int i =0;
+    for (it = subsetIndices.begin(); it != subsetIndices.end(); it++) {
+        if (i == budget)
+            break;
+        indices.insert(*it);
+        i++;
+    }
+    return indices;
+}
+
+Set ATL::getBIndicesRandom(int n,
+    double budget,
+    Set subsetIndices) {
+    //for each feature vector i (0 to n), identify random featureVectors and populate indices
+    Set indices;
+    std::vector<int> possibilities;
+    for (int i = 0; i < n; i++) {
+        if (subsetIndices.contains(i)) {
+            possibilities.push_back(i);
+        }
+    }
+    //auto engine = std::default_random_engine{};
+    std::random_shuffle(possibilities.begin(), possibilities.end());
+    for (int i = 0; i < budget; i++) {
+        indices.insert(possibilities[i]);
+    }
+    return indices;
+}
+
 void ATL::train(int *numCorrect,
     int *numTotal){
   std::cout << "creating sparse feature vector" << std::endl;
@@ -274,10 +311,11 @@ void ATL::train(int *numCorrect,
   }
   std::cout << "sparseFeatures.size()" << sparseFeatures.size() << std::endl << std::flush;
 
-  if (this->trainingStringToIntLabels.size() == 2) {
+  if (this->trainingStringToIntLabels.size() == 2 && !(this->trainConvertLabels)) {
       for (int i = 0; i < this->trainingIntLabels.size(); i++) {
           this->trainingIntLabels[i] = 2 * this->trainingIntLabels[i] - 1;
       }
+      this->trainConvertLabels = true;
   }
   this->model = new jensen::L2LogisticRegression<jensen::SparseFeature>(sparseFeatures,
       this->trainingIntLabels,
@@ -338,10 +376,11 @@ void ATL::test(int *numCorrect,
           sparseFeatures.push_back(s);
       }
 
-      if (this->testingStringToIntLabels.size() == 2) {
+      if (this->testingStringToIntLabels.size() == 2 && !(this->testConvertLabels)) {
           for (int i = 0; i < this->testingIntLabels.size(); i++) {
               this->testingIntLabels[i] = 2 * this->testingIntLabels[i] - 1;
           }
+          this->testConvertLabels = true;
       }
       double accuracy = predictAccuracy(sparseFeatures, this->testingIntLabels);
       double accuracy_percentage = accuracy/this->testingIntLabels.size();
@@ -357,6 +396,8 @@ void ATL::test(int *numCorrect,
 
 
  int ATL::run(int T){
+  std::ofstream csvFile;
+  csvFile.open(this->csvFilePath, std::ios_base::app);
   for (int t = 1; t <= T; t++) {
     std::cout << "___________________________________________________________________" << std::endl;
     std::cout << "DEBUG Trainingfeatvector.size() -> seed vectors " << this->trainingFeatureVectors.size() << std::endl;
@@ -367,6 +408,7 @@ void ATL::test(int *numCorrect,
     int *numTotal = (int *) malloc(sizeof(int));
     train();
     test(numCorrect, numTotal);
+    csvFile << ",=" << *numCorrect << "/" << *numTotal << std::flush;
     std::cout << t << ": numCorrect = " << *numCorrect << " numTotal = " << *numTotal << std::endl;
     if (this->unlabeledTrainingFeatureVectors.size() == 0) {
         break;
@@ -382,20 +424,45 @@ void ATL::test(int *numCorrect,
     Set uncertainIndices = getBetaUncertainIndices(this->unlabeledTrainingFeatureVectors, maxBeta);
     Set indicesToTrain;
     switch(this->subsetSelectionMode) {
-      case 0:
+      case 0:{
           std::cout << "Using facility location" << std::endl;
           indicesToTrain = getBIndicesFacilityLocation(
               this->unlabeledTrainingFeatureVectors,
+              this->unlabeledTrainingIntLabels,
               maxB,
               uncertainIndices);
           break;
-      case 1:
+      }
+      case 1:{
           std::cout << "Using Disparity Min" << std::endl;
           indicesToTrain = getBIndicesDisparityMin(
               this->unlabeledTrainingFeatureVectors,
+              this->unlabeledTrainingIntLabels,
               maxB,
               uncertainIndices);
           break;
+      }
+      case 2:{
+          std::cout
+              << "Using Uncertainty Sampling"
+              << std::endl;
+          indicesToTrain = getBIndicesUncertaintySampling(
+              maxB,
+              uncertainIndices);
+          break;
+      }
+      case 3:{
+          std::cout << "Using random mode" << std::endl;
+          Set allIndices;
+          for (int i = 0; i < unlabeledTrainingFeatureVectors.size(); i++) {
+              allIndices.insert(i);
+          }
+          indicesToTrain = getBIndicesRandom(
+              unlabeledTrainingFeatureVectors.size(),
+              maxB,
+              allIndices);
+          break;
+      }
       default:
           std::cout << "no submodular function found" << std::endl;
           return -1;
@@ -403,7 +470,12 @@ void ATL::test(int *numCorrect,
     Set::iterator it;
     std::vector<int> indiciesToDelete;
     for (it = indicesToTrain.begin(); it != indicesToTrain.end(); ++it) {
+      if (this->trainingStringToIntLabels.size() == 2){
+        this->trainingIntLabels.push_back(2 * this->unlabeledTrainingIntLabels[*it] - 1);
+      }
+      else{
         this->trainingIntLabels.push_back(this->unlabeledTrainingIntLabels[*it]);
+      }
         this->trainingFeatureVectors.push_back(this->unlabeledTrainingFeatureVectors[*it]);
         indiciesToDelete.push_back(*it);
     }
@@ -420,5 +492,7 @@ void ATL::test(int *numCorrect,
   train();
   test(numCorrectFinal, numTotalFinal);
   std::cout << ": numCorrectFinal = " << *numCorrectFinal << " numTotalFinal = " << *numTotalFinal << std::endl;
+  csvFile << ",=" << *numCorrectFinal << "/" << *numTotalFinal << std::flush;
+  csvFile.close();
   return 0;
 }
