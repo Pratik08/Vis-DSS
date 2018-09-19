@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
       if (argc < 12) {
         std::cout << "usage: ./ActiveTransferLearningExample [trainingDataJsonPath] [trainingJsonSavePath]"
           << " [testingDataJsonPath] [testingJsonSavePath] [betaPercent%] [bPercent%] [initialSeedPercentage%] [upperLimitPercent]"
-          << "[uncertaintyMode-optional(0-argMax, 1-marginalSampline,2-Entropy)] [subsetSelectionMode] [csvFilePath]"
+          << "[uncertaintyMode-optional(0-argMax, 1-marginalSampline,2-Entropy)] [subsetSelectionMode] [saveFolderPath]"
           << std::endl;
         return -1;
       }
@@ -110,7 +110,8 @@ int main(int argc, char *argv[]) {
         double upperLimitPercent = std::atof(argv[8]);
         int uncertaintyMode = std::atoi(argv[9]);
         int subsetSelectionMode = std::atoi(argv[10]);
-        std::string csvFilePath = argv[11];
+        std::string saveFolderPath = argv[11];
+        std::string csvFilePath = saveFolderPath + "/" + std::to_string(betaPercent) + "_" + std::to_string(bPercent) + "_" + std::to_string(uncertaintyMode) + "_" + std::to_string(subsetSelectionMode) + ".csv";
         if (upperLimitPercent > 100) {
                 upperLimitPercent = 100;
         }
@@ -232,11 +233,11 @@ int main(int argc, char *argv[]) {
         csvFile << "\n\n";
         csvFile << "Mode\\t,";
         for (int t = 0; t<=T ; t++) {
-            csvFile << t << ",";
+            csvFile << t << std::endl << std::flush;
         }
         csvFile << std::endl << std::flush;
         if(subsetSelectionMode == 0){
-          csvFile << "FASS with SMF1 = FacilityLocation" << std::flush;
+          csvFile << "FASS with SMF1 = FacilityLocation" << std::endl << std::flush;
         }
         if(subsetSelectionMode == 1){
           csvFile << "FASS with SMF2  = Disparity Min" << std::flush;

@@ -113,11 +113,13 @@ Set ATL::getBetaUncertainIndices(std::vector<std::vector<float>> &unlabelledFeat
     return uncertainIndices;
 }
 
-double ATL::predictAccuracy(
+std::vector<double> ATL::predictAccuracy(
     std::vector<jensen::SparseFeature>& testFeatures,
     jensen::Vector& ytest) {
     // assert(testFeatures.size() == ytest.size());
+    std::vector<double> accuracies;
     double accuracy = 0;
+    double top5Accuracy = 0;
     for (int i = 0; i < testFeatures.size(); i++) {
         jensen::Vector predictions;
         this->model->predictProbability(testFeatures[i], predictions);
@@ -132,6 +134,7 @@ double ATL::predictAccuracy(
         std::cout << "---------\n";
 
         int predictionMax = jensen::argMax(predictions);
+        std::vector<int> top5Predictions = top5(predictions);
         if (predictions.size() == 2) {
             if (predictionMax == 0) {
                 predictionMax = -1;
@@ -139,6 +142,8 @@ double ATL::predictAccuracy(
         }
         // std::cout << "Predicted " << ytest[i] << " as " << predictionMax
         //     << " with probability " << predictionMax << std::endl << std::flush;
+
+        // Calculating top 1 accuracy
         if (predictions[predictionMax] >= this->LRL2PredictionProbThresh) {
             if (predictionMax == ytest[i]) {
                 accuracy++;
@@ -147,10 +152,42 @@ double ATL::predictAccuracy(
         else if (ytest[i] == -2) {
             accuracy++;
         }
+
+        // Calculating top 5 accuracy
+        for (int k = 0; k < 5; k++) {
+          if (predictions[top5Predictions[k]] >= this->LRL2PredictionProbThresh) {
+              if (top5Predictions[k] == ytest[i]) {
+                  top5Accuracy++;
+                  break;
+              }
+          }
+          else if (ytest[i] == -2) {
+              top5Accuracy++;
+              break;
+          }
+        }
     }
-    return accuracy;
+    accuracies.push_back(accuracy);
+    accuracies.push_back(top5Accuracy);
+    return accuracies;
 }
 
+std::vector<int> ATL::top5(jensen::Vector x){
+    std::vector<int> maxIndices;
+    for (int i = 0; i < 5; i++) {
+      double maxVal = 0.0;
+      int maxIndex = -1;
+      for (int i = 0; i < x.size(); i++) {
+        if (maxVal < x[i]) {
+          maxVal = x[i];
+          maxIndex = i;
+        }
+      }
+      maxIndices.push_back(maxIndex);
+      x[maxIndex] = 0;
+    }
+    return maxIndices;
+}
 Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVectors, jensen::Vector featureIntLabels,
     double budget,
     Set &subsetIndices) {
@@ -289,7 +326,7 @@ Set ATL::getBIndicesRandom(int n,
 }
 
 void ATL::train(int *numCorrect,
-    int *numTotal){
+    int *numTotal, int *top5numCorrect, int *top5numTotal){
   std::cout << "creating sparse feature vector" << std::endl;
   std::vector<jensen::SparseFeature> sparseFeatures = std::vector<jensen::SparseFeature>();
   for (int i = 0; i < this->trainingFeatureVectors.size(); i++) {
@@ -342,7 +379,8 @@ void ATL::train(int *numCorrect,
 
       labelFile.close();
       std::cout << "ATL: Calling predictAccuracy" << std::endl;
-      double accuracy = this->predictAccuracy(sparseFeatures, this->trainingIntLabels);
+      std::vector<double> accuracies = this->predictAccuracy(sparseFeatures, this->trainingIntLabels);
+      double accuracy = accuracies[0];
       double accuracy_percentage = accuracy/this->trainingIntLabels.size();
       if (numCorrect != NULL) {
           *numCorrect = accuracy;
@@ -350,12 +388,24 @@ void ATL::train(int *numCorrect,
       if (numTotal != NULL) {
           *numTotal = this->trainingIntLabels.size();
       }
-      std::cout << "The train acuracy of the classifier is " << accuracy_percentage << "("
+      std::cout << "The Top 1 train acuracy of the classifier is " << accuracy_percentage << "("
           << accuracy << "/"<< this->trainingIntLabels.size() << ")" << std::endl;
+
+      double top5Accuracy = accuracies[1];
+      double top5Accuracy_percentage = top5Accuracy/this->trainingIntLabels.size();
+      if (top5numCorrect != NULL) {
+          *top5numCorrect = top5Accuracy;
+      }
+      if (top5numTotal != NULL) {
+          *top5numTotal = this->trainingIntLabels.size();
+      }
+      std::cout << "The Top 5 train acuracy of the classifier is " << top5Accuracy_percentage << "("
+          << top5Accuracy << "/"<< this->trainingIntLabels.size() << ")" << std::endl;
+
 }
 
 void ATL::test(int *numCorrect,
-    int *numTotal) {
+    int *numTotal, int *top5numCorrect, int *top5numTotal) {
       std::cout << "creating sparse feature vector" << std::endl;
       std::vector<jensen::SparseFeature> sparseFeatures = std::vector<jensen::SparseFeature>();
       for (int i = 0; i < this->testingFeatureVectors.size(); i++) {
@@ -382,7 +432,8 @@ void ATL::test(int *numCorrect,
           }
           this->testConvertLabels = true;
       }
-      double accuracy = predictAccuracy(sparseFeatures, this->testingIntLabels);
+      std::vector<double> accuracies = predictAccuracy(sparseFeatures, this->testingIntLabels);
+      double accuracy = accuracies[0]; // Top 1 test accuracy
       double accuracy_percentage = accuracy/this->testingIntLabels.size();
       if (numCorrect != NULL) {
           *numCorrect = accuracy;
@@ -390,7 +441,18 @@ void ATL::test(int *numCorrect,
       if (numTotal != NULL) {
           *numTotal = this->testingIntLabels.size();
       }
-      cout << "The test acuracy of the classifier is " << accuracy_percentage << "(" << accuracy
+      cout << "The Top 1 test acuracy of the classifier is " << accuracy_percentage << "(" << accuracy
+          << "/" << this->testingIntLabels.size() << ")" << std::endl;
+
+      double top5accuracy = accuracies[1]; // Top 5 test accurac
+      double top5accuracy_percentage = top5accuracy/this->testingIntLabels.size();
+      if (top5numCorrect != NULL) {
+          *top5numCorrect = top5accuracy;
+      }
+      if (top5numTotal != NULL) {
+          *top5numTotal = this->testingIntLabels.size();
+      }
+      cout << "The Top 5 test acuracy of the classifier is " << top5accuracy_percentage << "(" << top5accuracy
           << "/" << this->testingIntLabels.size() << ")" << std::endl;
 }
 
@@ -406,10 +468,16 @@ void ATL::test(int *numCorrect,
     std::cout << "DEBUG unlabeledTrainingFeatureVectors.size() -> unlabelled vectors, i.e full - seed " << this->unlabeledTrainingFeatureVectors.size() << std::endl;
     int *numCorrect = (int *) malloc(sizeof(int));
     int *numTotal = (int *) malloc(sizeof(int));
+    int *top5numCorrect = (int *) malloc(sizeof(int));
+    int *top5numTotal = (int *) malloc(sizeof(int));
     train();
-    test(numCorrect, numTotal);
+    test(numCorrect, numTotal, top5numCorrect, top5numTotal);
+    // Reporting Top 1 test accuracy at epoch T
     csvFile << ",=" << *numCorrect << "/" << *numTotal << std::flush;
+    // Reporting Top 5 test accuracy at epoch T
+    csvFile << ",=" << *top5numCorrect << "/" << *top5numTotal << std::endl << std::flush;
     std::cout << t << ": numCorrect = " << *numCorrect << " numTotal = " << *numTotal << std::endl;
+    std::cout << t << ": top5numCorrect = " << *top5numCorrect << " top5numTotal = " << *top5numTotal << std::endl;
     if (this->unlabeledTrainingFeatureVectors.size() == 0) {
         break;
     }
@@ -489,10 +557,19 @@ void ATL::test(int *numCorrect,
   }
   int *numCorrectFinal = (int *) malloc(sizeof(int));
   int *numTotalFinal = (int *) malloc(sizeof(int));
+  int *top5numCorrectFinal = (int *) malloc(sizeof(int));
+  int *top5numTotalFinal = (int *) malloc(sizeof(int));
   train();
-  test(numCorrectFinal, numTotalFinal);
+  test(numCorrectFinal, numTotalFinal, top5numCorrectFinal, top5numTotalFinal);
+
+  // Reporting final Top 1 accuracy
   std::cout << ": numCorrectFinal = " << *numCorrectFinal << " numTotalFinal = " << *numTotalFinal << std::endl;
   csvFile << ",=" << *numCorrectFinal << "/" << *numTotalFinal << std::flush;
+
+  // Reporting final Top 5 accuracy
+  std::cout << ": top5numCorrectFinal = " << *top5numCorrectFinal << " top5numTotalFinal = " << *top5numTotalFinal << std::endl;
+  csvFile << ",=" << *top5numCorrectFinal << "/" << *top5numTotalFinal << std::endl << std::flush;
+
   csvFile.close();
   return 0;
 }
