@@ -126,8 +126,8 @@ int main(int argc, char *argv[]) {
         std::string meanFilePath = "/home/aitoe/bvlc_alexnet/imagenet_mean.binaryproto";
         std::string labelFilePath = "/home/aitoe/bvlc_alexnet/labels.txt";
         std::string caffeFeatureExtractionLayer = "fc6";
-        CaffeClassifier* caffeClassifier = new CaffeClassifier(caffeNetworkFilePath, caffeTrainedFilePath, meanFilePath, labelFilePath);
         if(!file_exists(trainingJsonSavePath)) {
+                CaffeClassifier* caffeClassifier = new CaffeClassifier(caffeNetworkFilePath, caffeTrainedFilePath, meanFilePath, labelFilePath);
                 extractFeatures(trainingDataJsonPath, fullTrainingFeatureVectors, fullTrainingIntLabels, trainingStringToIntLabels, trainingFeaturesJson, trainingJsonSavePath, caffeFeatureExtractionLayer, caffeClassifier, true);
                 fullTrainingFeatureVectors.clear();
                 fullTrainingIntLabels.clear();
