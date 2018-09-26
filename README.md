@@ -4,6 +4,7 @@ Rishabh Iyer, Pratik Dubal, Kunal Dargan, Suraj Kothiwade, Rohan Mahadev, Vishal
 
 ## License
 Vis-DSS is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more details.
+Copyright (C) Rishabh Iyer, Pratik Dubal, Kunal Dargan, Suraj Kothiwade, Rohan Mahadev, Vishal Kaushal
 
 ## Features and Functionalities
 1) Video Summarization
