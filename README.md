@@ -1,5 +1,7 @@
 # Vis-DSS: Visual Data Subset Selection and Visual Data Summarization Using Submodular Functions
 
+Rishabh Iyer, Pratik Dubal, Kunal Dargan, Suraj Kothiwade, Rohan Mahadev, Vishal Kaushal, Vis-DSS: An Open-Source toolkit for Visual Data Selection and Summarization (https://arxiv.org/pdf/1809.08846.pdf)
+
 ## License
 Vis-DSS is Licensed under the GNU GENERAL PUBLIC LICENSE. See LICENSE for more details.
 
