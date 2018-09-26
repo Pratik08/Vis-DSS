@@ -48,7 +48,7 @@ float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2) {
     return exp(-diff / 2);
 }
 
-QuerySimImageSummarizer::QuerySimImageSummarizer(std::vector<cv::Mat>& imageCollection, CaffeClassifier& cc, std::string featureLayer, int summaryFunction, bool debugMode) : imageCollection(imageCollection), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), debugMode(debugMode) {
+QuerySimImageSummarizer::QuerySimImageSummarizer(std::vector<cv::Mat>& imageCollection, CaffeClassifier& ccLabel, CaffeClassifier& ccFeature, std::string featureLayer, int summaryFunction, bool debugMode) : imageCollection(imageCollection), ccLabel(ccLabel), ccFeature(ccFeature), featureLayer(featureLayer), summaryFunction(summaryFunction), debugMode(debugMode) {
     std::cout << "QuerySimImageSummarizer Constructor." << std::endl;
 }
 
@@ -63,14 +63,14 @@ void QuerySimImageSummarizer::extractFeatures() {
         frameFeature.clear();
         frameLabel.clear();
         cv::Mat frame = imageCollection[i].clone();
-        framePredictions = cc.Classify(frame, 1);
+        framePredictions = ccLabel.Classify(frame, 1);
         for (int j = 0; j < framePredictions.size(); j++) {
             frameLabel.insert(framePredictions[j].first);
         }
-        frameFeature = cc.Predict(frame, featureLayer);
+        frameFeature = ccFeature.Predict(frame, featureLayer);
         classifiedImage.push_back(std::make_pair(frameLabel, frameFeature));
         if (debugMode) {
-            std::vector<std::pair<std::string, float> > res = cc.Classify(frame, 1);
+            std::vector<std::pair<std::string, float> > res = ccLabel.Classify(frame, 1);
             std::string labels = "";
             for (int i = 0; i < res.size() - 1; i++) {
                 labels = labels + res[i].first + ", ";

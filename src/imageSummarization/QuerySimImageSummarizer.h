@@ -39,12 +39,13 @@ class QuerySimImageSummarizer {
     std::set<int> summarySet;
     std::vector<double> costList;
     std::vector<std::vector<float> > kernel;
-    CaffeClassifier cc;
+    CaffeClassifier ccLabel;
+    CaffeClassifier ccFeature;
     std::string featureLayer;
     bool debugMode;
 
  public:
-    QuerySimImageSummarizer(std::vector<cv::Mat>& imageCollection, CaffeClassifier & cc, std::string featureLayer, int summaryFunction = 0, bool debugMode = true);
+    QuerySimImageSummarizer(std::vector<cv::Mat>& imageCollection, CaffeClassifier & ccLabel, CaffeClassifier & ccFeature, std::string featureLayer, int summaryFunction = 0, bool debugMode = true);
     void extractFeatures();
     void processQuery(std::string queryInput);
     void computeKernel(int compareMethod = 0);

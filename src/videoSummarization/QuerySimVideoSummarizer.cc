@@ -48,7 +48,7 @@ float GaussianSimilarity(std::vector<float> vec1, std::vector<float> vec2) {
     return exp(-diff / 2);
 }
 
-QuerySimVideoSummarizer::QuerySimVideoSummarizer(char* videoFile, CaffeClassifier& cc, std::string featureLayer, int summaryFunction, int segmentType, int snippetLength, bool debugMode) : videoFile(videoFile), cc(cc), featureLayer(featureLayer), summaryFunction(summaryFunction), segmentType(segmentType), snippetLength(snippetLength), debugMode(debugMode) {
+QuerySimVideoSummarizer::QuerySimVideoSummarizer(char* videoFile, CaffeClassifier& ccLabel, CaffeClassifier& ccFeature, std::string featureLayer, int summaryFunction, int segmentType, int snippetLength, bool debugMode) : videoFile(videoFile), ccLabel(ccLabel), ccFeature(ccFeature), featureLayer(featureLayer), summaryFunction(summaryFunction), segmentType(segmentType), snippetLength(snippetLength), debugMode(debugMode) {
     cv::VideoCapture capture(videoFile);
     frameRate = static_cast<int>(capture.get(CV_CAP_PROP_FPS));
     videoLength = capture.get(CV_CAP_PROP_FRAME_COUNT) / frameRate;
@@ -81,12 +81,12 @@ void QuerySimVideoSummarizer::extractFeatures() {
         if (segmentStartTimes[i + 1] - segmentStartTimes[i] == 1) {
             capture.set(CV_CAP_PROP_POS_FRAMES, segmentStartTimes[i] * frameRate);
             capture >> frame;
-            framePredictions = cc.Classify(frame, 2);
+            framePredictions = ccLabel.Classify(frame, 2);
             for (int k = 0; k < 1; k++) {  // Consider only the top label.
                 frameLabel.insert(framePredictions[k].first);
             }
             classifiedLabel.push_back(frameLabel);
-            frameFeature = cc.Predict(frame, featureLayer);
+            frameFeature = ccFeature.Predict(frame, featureLayer);
             if (segmentType == 1) {
                 classifiedFeatureVector.push_back(std::make_pair(SmallShotPenalty, frameFeature));
             } else {
@@ -96,13 +96,13 @@ void QuerySimVideoSummarizer::extractFeatures() {
             for (int j = segmentStartTimes[i]; j < segmentStartTimes[i + 1]; j++) {
                 capture.set(CV_CAP_PROP_POS_FRAMES, j * frameRate);
                 capture >> frame;
-                framePredictions = cc.Classify(frame, 2);
+                framePredictions = ccLabel.Classify(frame, 2);
                 for (int k = 0; k < 1; k++) {  // Consider only the top label.
                     frameLabel.insert(framePredictions[k].first);
                 }
                 CurrVideo.push_back(frame.clone());
             }
-            frameFeature = cc.Predict(CurrVideo, featureLayer);
+            frameFeature = ccFeature.Predict(CurrVideo, featureLayer);
             classifiedLabel.push_back(frameLabel);
             classifiedFeatureVector.push_back(std::make_pair(CurrVideo.size(), frameFeature));
             CurrVideo.clear();
@@ -111,7 +111,7 @@ void QuerySimVideoSummarizer::extractFeatures() {
         frameFeature.clear();
         framePredictions.clear();
         if (debugMode) {
-            std::vector<std::pair<std::string, float> > res = cc.Classify(frame, 2);
+            std::vector<std::pair<std::string, float> > res = ccLabel.Classify(frame, 2);
             std::string labels = "";
             for (int i = 0; i < res.size() - 1; i++) {
                 labels = labels + res[i].first + ", ";
