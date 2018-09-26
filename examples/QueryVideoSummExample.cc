@@ -19,10 +19,14 @@ int budget = 120;  // summary budget in seconds
 double thresh = 0.001;  // threshold for the stream Algorithm
 double coverfrac = 0.9;  // coverage fraction for submodular set cover
 char* queryInput;
-char* network_file;
-char* trained_file;
-char* mean_file;
-char* label_file;
+char* label_network_file;
+char* label_trained_file;
+char* label_mean_file;
+char* label_label_file;
+char* feature_network_file;
+char* feature_trained_file;
+char* feature_mean_file;
+char* feature_label_file;
 char* featureLayer;
 char* help;
 
@@ -34,10 +38,14 @@ Arg Arg::Args[] = {
     Arg("segmentType", Arg::Req, segmentType, "Segment Type -- 0: Fixed Length Segments, 1: Segments based on Shot Detectors", Arg::SINGLE),
     Arg("summaryAlgo", Arg::Req, summaryAlgo, "Summarization Algorithm: 0: Budgeted Summarization, 1: Stream Summarization, 2: Coverage Summarization", Arg::SINGLE),
     Arg("featureLayer", Arg::Req, featureLayer, "Layer Name for Feature Extraction", Arg::SINGLE),
-    Arg("network_file", Arg::Req, network_file, "Input Network File", Arg::SINGLE),
-    Arg("trained_file", Arg::Req, trained_file, "Trained Model File", Arg::SINGLE),
-    Arg("mean_file", Arg::Opt, mean_file, "Mean File", Arg::SINGLE),
-    Arg("label_file", Arg::Opt, label_file, "Label File", Arg::SINGLE),
+    Arg("label_network_file", Arg::Req, label_network_file, "Query Label Network File", Arg::SINGLE),
+    Arg("label_trained_file", Arg::Req, label_trained_file, "Query Label Trained Model File", Arg::SINGLE),
+    Arg("label_mean_file", Arg::Opt, label_mean_file, "Query Label Mean File", Arg::SINGLE),
+    Arg("label_label_file", Arg::Opt, label_label_file, "Query Label - Label File", Arg::SINGLE),
+    Arg("feature_network_file", Arg::Req, feature_network_file, "Feature Network File", Arg::SINGLE),
+    Arg("feature_trained_file", Arg::Req, feature_trained_file, "Feature Trained Model File", Arg::SINGLE),
+    Arg("feature_mean_file", Arg::Opt, feature_mean_file, "Feature Mean File", Arg::SINGLE),
+    Arg("feature_label_file", Arg::Opt, feature_label_file, "Feature Label File", Arg::SINGLE),
     Arg("snippetLength", Arg::Opt, snippetLength, "Snippet Length", Arg::SINGLE),
     Arg("budget", Arg::Opt, budget, "Budget for summarization (if summarization algo is 0)", Arg::SINGLE),
     Arg("threshold", Arg::Opt, thresh, "Threshold for summarization (if summarization algo is 1)", Arg::SINGLE),
@@ -52,8 +60,9 @@ int main(int argc, char** argv) {
         Arg::usage(); exit(-1);
     }
 
-    CaffeClassifier cc(network_file, trained_file, mean_file, label_file);
-    QuerySimVideoSummarizer VS(videoFile, cc, featureLayer, summaryFunctionSim, segmentType);
+    CaffeClassifier ccLabel(label_network_file, label_trained_file, label_mean_file, label_label_file);
+    CaffeClassifier ccFeature(feature_network_file, feature_trained_file, feature_mean_file, feature_label_file);
+    QuerySimVideoSummarizer VS(videoFile, ccLabel, ccFeature, featureLayer, summaryFunctionSim, segmentType);
     VS.extractFeatures();
     VS.processQuery(queryInput);
     VS.computeKernel();
