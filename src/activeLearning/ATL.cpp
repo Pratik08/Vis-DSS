@@ -4,7 +4,7 @@ bool sortByUncertainty(const std::pair<int,double> &a, const std::pair<int,doubl
     return a.second > b.second;
 }
 
-ATL::ATL(std::vector<std::vector <float>> trainingFeatureVectors, jensen::Vector trainingIntLabels, std::vector<std::vector<float>> unlabeledTrainingFeatureVectors, jensen::Vector unlabeledTrainingIntLabels, std::vector<std::pair<int, std::string>> trainingStringToIntLabels, std::vector<std::vector<float>> testingFeatureVectors, jensen::Vector testingIntLabels, std::vector<std::pair<int, std::string>> testingStringToIntLabels, int beta, int b, int uncertaintyMode, int subsetSelectionMode){
+ATL::ATL(std::vector<std::vector <float>> trainingFeatureVectors, jensen::Vector trainingIntLabels, std::vector<std::vector<float>> unlabeledTrainingFeatureVectors, jensen::Vector unlabeledTrainingIntLabels, std::vector<std::pair<int, std::string>> trainingStringToIntLabels, std::vector<std::vector<float>> testingFeatureVectors, jensen::Vector testingIntLabels, std::vector<std::pair<int, std::string>> testingStringToIntLabels, int beta, int b, int uncertaintyMode, int subsetSelectionMode, std::string csvFilePath){
   this->trainingFeatureVectors = trainingFeatureVectors;
   this->trainingIntLabels = trainingIntLabels;
   this->unlabeledTrainingFeatureVectors = unlabeledTrainingFeatureVectors;
@@ -17,6 +17,7 @@ ATL::ATL(std::vector<std::vector <float>> trainingFeatureVectors, jensen::Vector
   this->b = b;
   this->uncertaintyMode = uncertaintyMode;
   this->subsetSelectionMode = subsetSelectionMode;
+  this->csvFilePath = csvFilePath;
 }
 
 ATL::~ATL(){}
@@ -112,11 +113,13 @@ Set ATL::getBetaUncertainIndices(std::vector<std::vector<float>> &unlabelledFeat
     return uncertainIndices;
 }
 
-double ATL::predictAccuracy(
+std::vector<double> ATL::predictAccuracy(
     std::vector<jensen::SparseFeature>& testFeatures,
     jensen::Vector& ytest) {
     // assert(testFeatures.size() == ytest.size());
+    std::vector<double> accuracies;
     double accuracy = 0;
+    double top5Accuracy = 0;
     for (int i = 0; i < testFeatures.size(); i++) {
         jensen::Vector predictions;
         this->model->predictProbability(testFeatures[i], predictions);
@@ -131,6 +134,7 @@ double ATL::predictAccuracy(
         std::cout << "---------\n";
 
         int predictionMax = jensen::argMax(predictions);
+        std::vector<int> top5Predictions = top5(predictions);
         if (predictions.size() == 2) {
             if (predictionMax == 0) {
                 predictionMax = -1;
@@ -138,6 +142,8 @@ double ATL::predictAccuracy(
         }
         // std::cout << "Predicted " << ytest[i] << " as " << predictionMax
         //     << " with probability " << predictionMax << std::endl << std::flush;
+
+        // Calculating top 1 accuracy
         if (predictions[predictionMax] >= this->LRL2PredictionProbThresh) {
             if (predictionMax == ytest[i]) {
                 accuracy++;
@@ -146,11 +152,43 @@ double ATL::predictAccuracy(
         else if (ytest[i] == -2) {
             accuracy++;
         }
+
+        // Calculating top 5 accuracy
+        for (int k = 0; k < 5; k++) {
+          if (predictions[top5Predictions[k]] >= this->LRL2PredictionProbThresh) {
+              if (top5Predictions[k] == ytest[i]) {
+                  top5Accuracy++;
+                  break;
+              }
+          }
+          else if (ytest[i] == -2) {
+              top5Accuracy++;
+              break;
+          }
+        }
     }
-    return accuracy;
+    accuracies.push_back(accuracy);
+    accuracies.push_back(top5Accuracy);
+    return accuracies;
 }
 
-Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVectors,
+std::vector<int> ATL::top5(jensen::Vector x){
+    std::vector<int> maxIndices;
+    for (int i = 0; i < 5; i++) {
+      double maxVal = 0.0;
+      int maxIndex = -1;
+      for (int i = 0; i < x.size(); i++) {
+        if (maxVal < x[i]) {
+          maxVal = x[i];
+          maxIndex = i;
+        }
+      }
+      maxIndices.push_back(maxIndex);
+      x[maxIndex] = 0;
+    }
+    return maxIndices;
+}
+Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVectors, jensen::Vector featureIntLabels,
     double budget,
     Set &subsetIndices) {
     //for each feature vector i (0 to n), compute its dot product with feature vector j (0 to n), update min, update max, store at k(i,j)
@@ -173,7 +211,9 @@ Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVec
             }
             std::vector<double> A(featureVectors.at(i).begin(),featureVectors.at(i).end());
             std::vector<double> B(featureVectors.at(j).begin(),featureVectors.at(j).end());
-            val = jensen::innerProduct(A,B);
+            if(featureIntLabels[i] == featureIntLabels[j]){
+              val = jensen::innerProduct(A,B);
+            }
             if(val < min) min = val;
             if(val > max) max = val;
             currvector.push_back(val);
@@ -201,7 +241,7 @@ Set ATL::getBIndicesFacilityLocation(std::vector<std::vector<float>> &featureVec
     return scaledIndices;
 }
 
-Set ATL::getBIndicesDisparityMin(std::vector<std::vector<float>> &featureVectors,
+Set ATL::getBIndicesDisparityMin(std::vector<std::vector<float>> &featureVectors, jensen::Vector featureIntLabels,
     double budget,
     Set &subsetIndices) {
     //for each feature vector i (0 to n), compute its dot product with feature vector j (0 to n), update min, update max, store at k(i,j)
@@ -224,7 +264,9 @@ Set ATL::getBIndicesDisparityMin(std::vector<std::vector<float>> &featureVectors
             }
             std::vector<double> A(featureVectors.at(i).begin(),featureVectors.at(i).end());
             std::vector<double> B(featureVectors.at(j).begin(),featureVectors.at(j).end());
-            val = jensen::innerProduct( A,B);
+            if(featureIntLabels[i] == featureIntLabels[j]){
+              val = jensen::innerProduct(A,B);
+            }
             if(val < min) min = val;
             if(val > max) max = val;
             currvector.push_back(val);
@@ -251,8 +293,40 @@ Set ATL::getBIndicesDisparityMin(std::vector<std::vector<float>> &featureVectors
     return scaledIndices;
 }
 
+Set ATL::getBIndicesUncertaintySampling(int budget, Set &subsetIndices) {
+    Set indices;
+    Set::iterator it;
+    int i =0;
+    for (it = subsetIndices.begin(); it != subsetIndices.end(); it++) {
+        if (i == budget)
+            break;
+        indices.insert(*it);
+        i++;
+    }
+    return indices;
+}
+
+Set ATL::getBIndicesRandom(int n,
+    double budget,
+    Set subsetIndices) {
+    //for each feature vector i (0 to n), identify random featureVectors and populate indices
+    Set indices;
+    std::vector<int> possibilities;
+    for (int i = 0; i < n; i++) {
+        if (subsetIndices.contains(i)) {
+            possibilities.push_back(i);
+        }
+    }
+    //auto engine = std::default_random_engine{};
+    std::random_shuffle(possibilities.begin(), possibilities.end());
+    for (int i = 0; i < budget; i++) {
+        indices.insert(possibilities[i]);
+    }
+    return indices;
+}
+
 void ATL::train(int *numCorrect,
-    int *numTotal){
+    int *numTotal, int *top5numCorrect, int *top5numTotal){
   std::cout << "creating sparse feature vector" << std::endl;
   std::vector<jensen::SparseFeature> sparseFeatures = std::vector<jensen::SparseFeature>();
   for (int i = 0; i < this->trainingFeatureVectors.size(); i++) {
@@ -274,10 +348,11 @@ void ATL::train(int *numCorrect,
   }
   std::cout << "sparseFeatures.size()" << sparseFeatures.size() << std::endl << std::flush;
 
-  if (this->trainingStringToIntLabels.size() == 2) {
+  if (this->trainingStringToIntLabels.size() == 2 && !(this->trainConvertLabels)) {
       for (int i = 0; i < this->trainingIntLabels.size(); i++) {
           this->trainingIntLabels[i] = 2 * this->trainingIntLabels[i] - 1;
       }
+      this->trainConvertLabels = true;
   }
   this->model = new jensen::L2LogisticRegression<jensen::SparseFeature>(sparseFeatures,
       this->trainingIntLabels,
@@ -304,7 +379,8 @@ void ATL::train(int *numCorrect,
 
       labelFile.close();
       std::cout << "ATL: Calling predictAccuracy" << std::endl;
-      double accuracy = this->predictAccuracy(sparseFeatures, this->trainingIntLabels);
+      std::vector<double> accuracies = this->predictAccuracy(sparseFeatures, this->trainingIntLabels);
+      double accuracy = accuracies[0];
       double accuracy_percentage = accuracy/this->trainingIntLabels.size();
       if (numCorrect != NULL) {
           *numCorrect = accuracy;
@@ -312,12 +388,24 @@ void ATL::train(int *numCorrect,
       if (numTotal != NULL) {
           *numTotal = this->trainingIntLabels.size();
       }
-      std::cout << "The train acuracy of the classifier is " << accuracy_percentage << "("
+      std::cout << "The Top 1 train acuracy of the classifier is " << accuracy_percentage << "("
           << accuracy << "/"<< this->trainingIntLabels.size() << ")" << std::endl;
+
+      double top5Accuracy = accuracies[1];
+      double top5Accuracy_percentage = top5Accuracy/this->trainingIntLabels.size();
+      if (top5numCorrect != NULL) {
+          *top5numCorrect = top5Accuracy;
+      }
+      if (top5numTotal != NULL) {
+          *top5numTotal = this->trainingIntLabels.size();
+      }
+      std::cout << "The Top 5 train acuracy of the classifier is " << top5Accuracy_percentage << "("
+          << top5Accuracy << "/"<< this->trainingIntLabels.size() << ")" << std::endl;
+
 }
 
 void ATL::test(int *numCorrect,
-    int *numTotal) {
+    int *numTotal, int *top5numCorrect, int *top5numTotal) {
       std::cout << "creating sparse feature vector" << std::endl;
       std::vector<jensen::SparseFeature> sparseFeatures = std::vector<jensen::SparseFeature>();
       for (int i = 0; i < this->testingFeatureVectors.size(); i++) {
@@ -338,12 +426,14 @@ void ATL::test(int *numCorrect,
           sparseFeatures.push_back(s);
       }
 
-      if (this->testingStringToIntLabels.size() == 2) {
+      if (this->testingStringToIntLabels.size() == 2 && !(this->testConvertLabels)) {
           for (int i = 0; i < this->testingIntLabels.size(); i++) {
               this->testingIntLabels[i] = 2 * this->testingIntLabels[i] - 1;
           }
+          this->testConvertLabels = true;
       }
-      double accuracy = predictAccuracy(sparseFeatures, this->testingIntLabels);
+      std::vector<double> accuracies = predictAccuracy(sparseFeatures, this->testingIntLabels);
+      double accuracy = accuracies[0]; // Top 1 test accuracy
       double accuracy_percentage = accuracy/this->testingIntLabels.size();
       if (numCorrect != NULL) {
           *numCorrect = accuracy;
@@ -351,12 +441,25 @@ void ATL::test(int *numCorrect,
       if (numTotal != NULL) {
           *numTotal = this->testingIntLabels.size();
       }
-      cout << "The test acuracy of the classifier is " << accuracy_percentage << "(" << accuracy
+      cout << "The Top 1 test acuracy of the classifier is " << accuracy_percentage << "(" << accuracy
+          << "/" << this->testingIntLabels.size() << ")" << std::endl;
+
+      double top5accuracy = accuracies[1]; // Top 5 test accurac
+      double top5accuracy_percentage = top5accuracy/this->testingIntLabels.size();
+      if (top5numCorrect != NULL) {
+          *top5numCorrect = top5accuracy;
+      }
+      if (top5numTotal != NULL) {
+          *top5numTotal = this->testingIntLabels.size();
+      }
+      cout << "The Top 5 test acuracy of the classifier is " << top5accuracy_percentage << "(" << top5accuracy
           << "/" << this->testingIntLabels.size() << ")" << std::endl;
 }
 
 
  int ATL::run(int T){
+  std::ofstream csvFile;
+  csvFile.open(this->csvFilePath, std::ios_base::app);
   for (int t = 1; t <= T; t++) {
     std::cout << "___________________________________________________________________" << std::endl;
     std::cout << "DEBUG Trainingfeatvector.size() -> seed vectors " << this->trainingFeatureVectors.size() << std::endl;
@@ -365,9 +468,16 @@ void ATL::test(int *numCorrect,
     std::cout << "DEBUG unlabeledTrainingFeatureVectors.size() -> unlabelled vectors, i.e full - seed " << this->unlabeledTrainingFeatureVectors.size() << std::endl;
     int *numCorrect = (int *) malloc(sizeof(int));
     int *numTotal = (int *) malloc(sizeof(int));
+    int *top5numCorrect = (int *) malloc(sizeof(int));
+    int *top5numTotal = (int *) malloc(sizeof(int));
     train();
-    test(numCorrect, numTotal);
+    test(numCorrect, numTotal, top5numCorrect, top5numTotal);
+    // Reporting Top 1 test accuracy at epoch T
+    csvFile << ",=" << *numCorrect << "/" << *numTotal << std::flush;
+    // Reporting Top 5 test accuracy at epoch T
+    csvFile << ",=" << *top5numCorrect << "/" << *top5numTotal << std::endl << std::flush;
     std::cout << t << ": numCorrect = " << *numCorrect << " numTotal = " << *numTotal << std::endl;
+    std::cout << t << ": top5numCorrect = " << *top5numCorrect << " top5numTotal = " << *top5numTotal << std::endl;
     if (this->unlabeledTrainingFeatureVectors.size() == 0) {
         break;
     }
@@ -382,20 +492,45 @@ void ATL::test(int *numCorrect,
     Set uncertainIndices = getBetaUncertainIndices(this->unlabeledTrainingFeatureVectors, maxBeta);
     Set indicesToTrain;
     switch(this->subsetSelectionMode) {
-      case 0:
+      case 0:{
           std::cout << "Using facility location" << std::endl;
           indicesToTrain = getBIndicesFacilityLocation(
               this->unlabeledTrainingFeatureVectors,
+              this->unlabeledTrainingIntLabels,
               maxB,
               uncertainIndices);
           break;
-      case 1:
+      }
+      case 1:{
           std::cout << "Using Disparity Min" << std::endl;
           indicesToTrain = getBIndicesDisparityMin(
               this->unlabeledTrainingFeatureVectors,
+              this->unlabeledTrainingIntLabels,
               maxB,
               uncertainIndices);
           break;
+      }
+      case 2:{
+          std::cout
+              << "Using Uncertainty Sampling"
+              << std::endl;
+          indicesToTrain = getBIndicesUncertaintySampling(
+              maxB,
+              uncertainIndices);
+          break;
+      }
+      case 3:{
+          std::cout << "Using random mode" << std::endl;
+          Set allIndices;
+          for (int i = 0; i < unlabeledTrainingFeatureVectors.size(); i++) {
+              allIndices.insert(i);
+          }
+          indicesToTrain = getBIndicesRandom(
+              unlabeledTrainingFeatureVectors.size(),
+              maxB,
+              allIndices);
+          break;
+      }
       default:
           std::cout << "no submodular function found" << std::endl;
           return -1;
@@ -403,7 +538,12 @@ void ATL::test(int *numCorrect,
     Set::iterator it;
     std::vector<int> indiciesToDelete;
     for (it = indicesToTrain.begin(); it != indicesToTrain.end(); ++it) {
+      if (this->trainingStringToIntLabels.size() == 2){
+        this->trainingIntLabels.push_back(2 * this->unlabeledTrainingIntLabels[*it] - 1);
+      }
+      else{
         this->trainingIntLabels.push_back(this->unlabeledTrainingIntLabels[*it]);
+      }
         this->trainingFeatureVectors.push_back(this->unlabeledTrainingFeatureVectors[*it]);
         indiciesToDelete.push_back(*it);
     }
@@ -417,8 +557,19 @@ void ATL::test(int *numCorrect,
   }
   int *numCorrectFinal = (int *) malloc(sizeof(int));
   int *numTotalFinal = (int *) malloc(sizeof(int));
+  int *top5numCorrectFinal = (int *) malloc(sizeof(int));
+  int *top5numTotalFinal = (int *) malloc(sizeof(int));
   train();
-  test(numCorrectFinal, numTotalFinal);
+  test(numCorrectFinal, numTotalFinal, top5numCorrectFinal, top5numTotalFinal);
+
+  // Reporting final Top 1 accuracy
   std::cout << ": numCorrectFinal = " << *numCorrectFinal << " numTotalFinal = " << *numTotalFinal << std::endl;
+  csvFile << ",=" << *numCorrectFinal << "/" << *numTotalFinal << std::flush;
+
+  // Reporting final Top 5 accuracy
+  std::cout << ": top5numCorrectFinal = " << *top5numCorrectFinal << " top5numTotalFinal = " << *top5numTotalFinal << std::endl;
+  csvFile << ",=" << *top5numCorrectFinal << "/" << *top5numTotalFinal << std::endl << std::flush;
+
+  csvFile.close();
   return 0;
 }
